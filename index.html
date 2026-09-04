@@ -1,1 +1,1809 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F766E">
+<title>דירות – מנהל חיפוש השכרה</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var t = localStorage.getItem('hr_theme');
+  var d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  document.documentElement.setAttribute('data-theme', t || (d ? 'dark' : 'light'));
+  var l = localStorage.getItem('hr_lang') || 'he';
+  document.documentElement.setAttribute('lang', l);
+  document.documentElement.setAttribute('dir', l === 'he' ? 'rtl' : 'ltr');
+  var f = localStorage.getItem('hr_fontScale') || '1';
+  document.documentElement.style.setProperty('--font-scale', f);
+})();
+</script>
+<style>
+:root{
+  --font-scale:1;
+  --bg:#f4f6f8; --bg2:#eceff2; --card:#ffffff; --card2:#f8fafb;
+  --text:#15202b; --text2:#5b6b7a; --text3:#8b9aa8;
+  --accent:#0F766E; --accent2:#14b8a6; --accent-soft:#d7f2ee;
+  --border:#dfe5ea; --shadow:rgba(16,32,48,.10);
+  --danger:#dc2626; --danger-soft:#fde8e8;
+  --success:#16a34a; --success-soft:#dcfce7;
+  --warning:#d97706; --warning-soft:#fef3c7;
+  --info:#2563eb; --info-soft:#dbeafe;
+  --purple:#7c3aed;
+}
+[data-theme="dark"]{
+  --bg:#0d1418; --bg2:#131c22; --card:#18242b; --card2:#1f2d35;
+  --text:#e6edf1; --text2:#9fb0bc; --text3:#71838f;
+  --accent:#2dd4bf; --accent2:#5eead4; --accent-soft:#123832;
+  --border:#2a3a44; --shadow:rgba(0,0,0,.42);
+  --danger:#f87171; --danger-soft:#3a1a1a;
+  --success:#4ade80; --success-soft:#12331f;
+  --warning:#fbbf24; --warning-soft:#3a2c10;
+  --info:#60a5fa; --info-soft:#152742;
+  --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Heebo',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg); color:var(--text);
+  font-size:calc(15px * var(--font-scale));
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden; overscroll-behavior-y:contain;
+  transition:background .25s,color .25s;
+}
+input,select,textarea,button{font-family:inherit;font-size:16px}
+html[dir="rtl"] body{text-align:right}
+html[dir="ltr"] body{text-align:left}
 
+/* ---------- screens ---------- */
+.screen{display:none;flex-direction:column;min-height:100vh;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+.screen.active{display:flex}
+.screen.no-nav{padding-bottom:env(safe-area-inset-bottom)}
+@media(min-width:920px){
+  .screen{max-width:1060px;padding-bottom:40px}
+}
+
+/* ---------- loading ---------- */
+#screen-loading{align-items:center;justify-content:center;max-width:none;
+  background:linear-gradient(150deg,#0F766E 0%,#14b8a6 55%,#0ea5e9 100%)}
+.loading-logo{font-size:76px;animation:floatBounce 1.8s ease-in-out infinite;filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}
+@keyframes floatBounce{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(4deg)}}
+.loading-title{font-size:27px;font-weight:900;color:#fff;margin-top:14px;letter-spacing:-.5px}
+.loading-sub{font-size:13px;color:rgba(255,255,255,.85);margin-top:6px;font-weight:500}
+.spinner{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:22px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- header ---------- */
+.app-header{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+  background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90}
+.app-header h1{font-size:calc(1.06rem * var(--font-scale));font-weight:900;letter-spacing:-.3px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-ver{font-size:10px;opacity:.5;font-weight:800;letter-spacing:.3px}
+.icon-btn{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--bg2);color:var(--text)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.sync-dot.on{background:var(--success);box-shadow:0 0 0 3px var(--success-soft)}
+.sync-dot.local{background:var(--warning);box-shadow:0 0 0 3px var(--warning-soft)}
+
+/* ---------- generic ---------- */
+.pad{padding:14px 16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;box-shadow:0 1px 3px var(--shadow)}
+.section-title{font-size:calc(.74rem * var(--font-scale));font-weight:800;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--text3);margin:18px 0 8px}
+.section-title:first-child{margin-top:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 16px;border:none;
+  border-radius:11px;font-size:calc(.88rem * var(--font-scale));font-weight:700;cursor:pointer;transition:all .16s;line-height:1.3}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg2)}
+.btn-soft{background:var(--accent-soft);color:var(--accent);font-weight:800}
+.btn-block{width:100%}
+.btn-sm{padding:6px 11px;font-size:calc(.78rem * var(--font-scale));border-radius:9px}
+.btn-lg{padding:13px 22px;font-size:calc(.98rem * var(--font-scale));border-radius:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;align-items:center;gap:9px}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.muted{color:var(--text2)}
+.tiny{font-size:calc(.72rem * var(--font-scale))}
+.small{font-size:calc(.8rem * var(--font-scale))}
+.spacer{flex:1}
+.hidden{display:none !important}
+
+/* ---------- form ---------- */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:calc(.76rem * var(--font-scale));font-weight:700;color:var(--text2);margin-bottom:5px}
+.inp,select.inp,textarea.inp{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:11px;
+  background:var(--card2);color:var(--text);font-size:16px;transition:border-color .15s,box-shadow .15s;outline:none}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.inp{min-height:88px;resize:vertical;line-height:1.55}
+select.inp{cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:7px 13px;border-radius:999px;border:1.5px solid var(--border);background:var(--card);
+  color:var(--text2);font-size:calc(.8rem * var(--font-scale));font-weight:700;cursor:pointer;transition:all .15s;user-select:none}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.tri-no{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;
+  font-size:calc(.7rem * var(--font-scale));font-weight:800;background:var(--bg2);color:var(--text2);white-space:nowrap}
+.pill.ok{background:var(--success-soft);color:var(--success)}
+.pill.warn{background:var(--warning-soft);color:var(--warning)}
+.pill.info{background:var(--info-soft);color:var(--info)}
+.pill.acc{background:var(--accent-soft);color:var(--accent)}
+.pill.dang{background:var(--danger-soft);color:var(--danger)}
+
+/* ---------- empty ---------- */
+.empty{text-align:center;padding:52px 22px;color:var(--text2)}
+.empty-icon{font-size:56px;margin-bottom:12px;opacity:.85}
+.empty-title{font-size:calc(1.02rem * var(--font-scale));font-weight:800;color:var(--text)}
+.empty-sub{font-size:calc(.84rem * var(--font-scale));margin-top:7px;line-height:1.6;max-width:300px;margin-inline:auto}
+
+/* ---------- bottom nav ---------- */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;
+  background:var(--card);border-top:1px solid var(--border);padding:7px 0;
+  padding-bottom:calc(7px + env(safe-area-inset-bottom));z-index:95;max-width:480px;margin:0 auto}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:calc(.66rem * var(--font-scale));
+  font-weight:700;color:var(--text3);cursor:pointer;padding:4px 10px;border-radius:11px;transition:color .15s;
+  background:none;border:none;position:relative;min-width:62px}
+.nav-item.active{color:var(--accent)}
+.nav-item .ic{font-size:19px;line-height:1.15}
+.nav-badge{position:absolute;top:-1px;inset-inline-end:6px;background:var(--danger);color:#fff;
+  font-size:9px;font-weight:900;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+
+/* ---------- swipe card ---------- */
+.deck{position:relative;height:min(560px,64vh);margin:10px 16px 0;touch-action:pan-y}
+.swipe-card{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);border-radius:20px;
+  box-shadow:0 10px 30px var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+  will-change:transform;transition:transform .3s cubic-bezier(.2,.7,.3,1),opacity .3s}
+.swipe-card.behind{transform:scale(.94) translateY(14px);opacity:.65;pointer-events:none}
+.swipe-card.behind2{transform:scale(.88) translateY(28px);opacity:.35;pointer-events:none}
+.swipe-card.dragging{transition:none}
+.sc-head{padding:14px 16px 11px;border-bottom:1px solid var(--border);background:var(--card2)}
+.sc-price{font-size:calc(1.42rem * var(--font-scale));font-weight:900;color:var(--accent);letter-spacing:-.6px}
+.sc-addr{font-size:calc(1.0rem * var(--font-scale));font-weight:800;margin-top:2px;line-height:1.35}
+.sc-sub{font-size:calc(.79rem * var(--font-scale));color:var(--text2);margin-top:3px}
+.sc-body{flex:1;overflow-y:auto;padding:13px 16px;-webkit-overflow-scrolling:touch}
+.sc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.stat{background:var(--bg2);border-radius:11px;padding:8px 4px;text-align:center}
+.stat-v{font-size:calc(1.02rem * var(--font-scale));font-weight:900;line-height:1.2}
+.stat-l{font-size:calc(.63rem * var(--font-scale));color:var(--text3);font-weight:700;margin-top:1px}
+.sc-desc{font-size:calc(.85rem * var(--font-scale));line-height:1.65;color:var(--text2);white-space:pre-wrap;word-break:break-word}
+.sc-actions{display:flex;gap:9px;padding:11px 16px calc(11px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--card2)}
+.act{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:13px;
+  border:none;font-size:calc(.88rem * var(--font-scale));font-weight:800;cursor:pointer;transition:transform .15s}
+.act:active{transform:scale(.95)}
+.act-no{background:var(--danger-soft);color:var(--danger)}
+.act-yes{background:var(--success-soft);color:var(--success)}
+.act-skip{flex:0 0 52px;background:var(--bg2);color:var(--text2)}
+.stamp{position:absolute;top:26px;padding:6px 16px;border:4px solid;border-radius:12px;font-size:24px;
+  font-weight:900;opacity:0;transform:rotate(-14deg);pointer-events:none;z-index:5;letter-spacing:1px}
+.stamp-yes{inset-inline-start:22px;color:var(--success);border-color:var(--success);transform:rotate(-14deg)}
+.stamp-no{inset-inline-end:22px;color:var(--danger);border-color:var(--danger);transform:rotate(14deg)}
+
+/* ---------- listing list ---------- */
+.list-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:13px;
+  margin-bottom:10px;box-shadow:0 1px 3px var(--shadow);cursor:pointer;transition:transform .15s,border-color .15s}
+.list-card:active{transform:scale(.99)}
+.list-card:hover{border-color:var(--accent)}
+.lc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
+.lc-price{font-size:calc(1.1rem * var(--font-scale));font-weight:900;color:var(--accent);white-space:nowrap}
+.lc-addr{font-size:calc(.93rem * var(--font-scale));font-weight:800;line-height:1.35;flex:1}
+.lc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.lc-note{margin-top:8px;padding:8px 10px;background:var(--warning-soft);border-radius:10px;
+  font-size:calc(.78rem * var(--font-scale));color:var(--text);line-height:1.5;white-space:pre-wrap;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.stars{display:inline-flex;gap:1px;font-size:calc(.9rem * var(--font-scale));cursor:pointer;user-select:none}
+.star{opacity:.25;transition:opacity .15s;padding:0 1px}
+.star.on{opacity:1}
+@media(min-width:920px){
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;align-items:start}
+  .cards-grid .list-card{margin-bottom:0}
+  .app-header{order:-2;border-radius:0}
+  .bottom-nav{order:-1;position:static;max-width:none;width:100%;margin:0;
+    border-top:none;border-bottom:1px solid var(--border);padding:6px 0;justify-content:flex-start;gap:4px}
+  .nav-item{flex-direction:row;gap:7px;padding:8px 16px;font-size:calc(.82rem * var(--font-scale))}
+  .nav-item .ic{font-size:17px}
+  .nav-badge{position:static;margin-inline-start:2px}
+  .deck{max-width:540px;margin-inline:auto;height:min(620px,72vh)}
+  #view-compare,#view-search{max-width:820px;margin:0 auto;width:100%}
+}
+
+/* ---------- modal ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(8,15,20,.6);z-index:1000;display:none;
+  align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.active{display:flex}
+.modal{background:var(--bg);width:100%;max-width:520px;max-height:92dvh;border-radius:22px 22px 0 0;
+  display:flex;flex-direction:column;animation:slideUp .28s cubic-bezier(.2,.8,.3,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(min-width:920px){
+  .modal-bg{align-items:center}
+  .modal{border-radius:20px;max-height:86dvh;animation:popIn .22s ease}
+  @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+}
+.modal-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--card)}
+.modal-head h3{font-size:calc(1rem * var(--font-scale));font-weight:900;flex:1}
+.modal-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.modal-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);
+  background:var(--card);display:flex;gap:9px}
+
+/* ---------- settings ---------- */
+.settings-group{margin-bottom:20px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.toggle-switch{position:relative;width:46px;height:26px;display:inline-block;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:26px;cursor:pointer;transition:background .25s}
+.toggle-slider::before{content:'';position:absolute;width:20px;height:20px;top:3px;inset-inline-start:3px;
+  background:#fff;border-radius:50%;transition:transform .25s}
+.toggle-switch input:checked + .toggle-slider{background:var(--accent)}
+html[dir="rtl"] .toggle-switch input:checked + .toggle-slider::before{transform:translateX(-20px)}
+html[dir="ltr"] .toggle-switch input:checked + .toggle-slider::before{transform:translateX(20px)}
+
+/* ---------- compare ---------- */
+.cmp-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+table.cmp{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:calc(.79rem * var(--font-scale))}
+table.cmp th,table.cmp td{padding:9px 11px;border-bottom:1px solid var(--border);text-align:start;white-space:nowrap;vertical-align:top}
+table.cmp thead th{background:var(--card2);font-weight:900;position:sticky;top:0;z-index:2;border-bottom:2px solid var(--border)}
+table.cmp tbody th{background:var(--card);font-weight:800;color:var(--text2);position:sticky;inset-inline-start:0;z-index:1;
+  min-width:104px;font-size:calc(.75rem * var(--font-scale))}
+table.cmp td{background:var(--card)}
+table.cmp tr:hover td{background:var(--card2)}
+.cmp-best{color:var(--success);font-weight:900}
+
+/* ---------- misc ---------- */
+.toast{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(120px);background:#1f2937;color:#fff;padding:11px 22px;border-radius:999px;
+  font-size:calc(.84rem * var(--font-scale));font-weight:700;z-index:3000;transition:transform .3s ease;
+  max-width:calc(100vw - 32px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.28)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#15803d} .toast.err{background:#b91c1c} .toast.info{background:#1d4ed8}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.cf{position:absolute;animation:cfFall linear forwards}
+@keyframes cfFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+.code-box{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:26px;font-weight:900;letter-spacing:5px;
+  text-align:center;padding:15px;background:var(--accent-soft);color:var(--accent);border-radius:14px;
+  user-select:all;word-break:break-all;direction:ltr}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.help{font-size:calc(.75rem * var(--font-scale));color:var(--text3);line-height:1.6;margin-top:5px}
+.warn-box{background:var(--warning-soft);border:1px solid var(--warning);color:var(--text);
+  border-radius:12px;padding:11px 13px;font-size:calc(.79rem * var(--font-scale));line-height:1.6}
+.info-box{background:var(--info-soft);border:1px solid var(--info);color:var(--text);
+  border-radius:12px;padding:11px 13px;font-size:calc(.79rem * var(--font-scale));line-height:1.6}
+.tabs{display:flex;gap:6px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);
+  color:var(--text2);font-weight:700;font-size:calc(.8rem * var(--font-scale));cursor:pointer;white-space:nowrap;transition:all .15s}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+@media print{
+  .no-print,.bottom-nav,.app-header,.sc-actions{display:none !important}
+  .screen{display:block !important;min-height:auto;max-width:none}
+  body{background:#fff;color:#000}
+  .list-card{break-inside:avoid;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<div class="confetti-wrap" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ============ LOADING ============ -->
+<div class="screen active" id="screen-loading">
+  <div class="loading-logo">🏠</div>
+  <div class="loading-title" id="loadTitle">מנהל חיפוש דירות</div>
+  <div class="loading-sub" id="loadSub">טוען…</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- ============ ONBOARDING ============ -->
+<div class="screen no-nav" id="screen-onboard">
+  <div class="pad" style="padding-top:calc(30px + env(safe-area-inset-top))">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:60px">🏠</div>
+      <h1 style="font-size:calc(1.5rem * var(--font-scale));font-weight:900;margin-top:6px" data-i18n="appName">מנהל חיפוש דירות</h1>
+      <p class="muted small" style="margin-top:6px;line-height:1.6" data-i18n="onboardSub">אספו מודעות, סננו, ונהלו מעקב על הדירות שמעניינות אתכם</p>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="margin-bottom:8px"><span style="font-size:22px">☁️</span>
+        <b data-i18n="obCloudTitle">סנכרון בין מכשירים</b></div>
+      <p class="small muted" style="line-height:1.6;margin-bottom:11px" data-i18n="obCloudDesc">
+        צרו מרחב עבודה חדש וקבלו קוד חיבור. הזינו את הקוד במכשירים אחרים כדי לראות את אותו מאגר.</p>
+      <div class="row" style="gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="createWorkspace()" data-i18n="obCreate">צור מרחב חדש</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="showJoinModal()" data-i18n="obJoin">התחבר עם קוד</button>
+      </div>
+      <div id="obCloudWarn" class="warn-box hidden" style="margin-top:10px" data-i18n="obNoFirebase">
+        Firebase לא מוגדר עדיין. ערכו את FIREBASE_CONFIG בראש index.html כדי לאפשר סנכרון.</div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:8px"><span style="font-size:22px">📱</span>
+        <b data-i18n="obLocalTitle">מכשיר יחיד</b></div>
+      <p class="small muted" style="line-height:1.6;margin-bottom:11px" data-i18n="obLocalDesc">
+        כל הנתונים נשמרים במכשיר הזה בלבד. אפשר לייצא ולייבא קובץ גיבוי בכל רגע.</p>
+      <button class="btn btn-ghost btn-block" onclick="startLocal()" data-i18n="obLocalBtn">התחל במצב מקומי</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="screen" id="screen-app">
+  <div class="app-header">
+    <span class="sync-dot" id="syncDot"></span>
+    <h1 id="viewTitle">חיפוש</h1>
+    <button class="icon-btn" onclick="openSettings()" title="הגדרות">⚙️</button>
+  </div>
+
+  <!-- ---- VIEW: SEARCH / FILTER ---- -->
+  <div class="view pad" id="view-search">
+    <div class="row-between" style="margin-bottom:12px">
+      <div>
+        <div style="font-weight:900;font-size:calc(1.05rem * var(--font-scale))" data-i18n="filterTitle">פילטר חיפוש</div>
+        <div class="tiny muted" id="filterSummary">—</div>
+      </div>
+      <button class="btn btn-sm btn-ghost" onclick="resetFilter()" data-i18n="reset">אפס</button>
+    </div>
+
+    <div class="card">
+      <div class="grid2">
+        <div class="field"><label data-i18n="fCity">עיר</label>
+          <input class="inp" id="fCity" placeholder="תל אביב" oninput="onFilterChange()"></div>
+        <div class="field"><label data-i18n="fHoods">שכונות (מופרד בפסיק)</label>
+          <input class="inp" id="fHoods" placeholder="פלורנטין, נוה צדק" oninput="onFilterChange()"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label data-i18n="fPriceMin">מחיר מ־ (₪)</label>
+          <input class="inp" id="fPriceMin" type="number" inputmode="numeric" placeholder="0" oninput="onFilterChange()"></div>
+        <div class="field"><label data-i18n="fPriceMax">מחיר עד (₪)</label>
+          <input class="inp" id="fPriceMax" type="number" inputmode="numeric" placeholder="10000" oninput="onFilterChange()"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label data-i18n="fRoomsMin">חדרים מ־</label>
+          <input class="inp" id="fRoomsMin" type="number" step="0.5" inputmode="decimal" placeholder="2" oninput="onFilterChange()"></div>
+        <div class="field"><label data-i18n="fRoomsMax">חדרים עד</label>
+          <input class="inp" id="fRoomsMax" type="number" step="0.5" inputmode="decimal" placeholder="5" oninput="onFilterChange()"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label data-i18n="fFloorMin">קומה מ־</label>
+          <input class="inp" id="fFloorMin" type="number" inputmode="numeric" placeholder="0" oninput="onFilterChange()"></div>
+        <div class="field"><label data-i18n="fFloorMax">קומה עד</label>
+          <input class="inp" id="fFloorMax" type="number" inputmode="numeric" placeholder="20" oninput="onFilterChange()"></div>
+        <div class="field"><label data-i18n="fSizeMin">מ״ר מ־</label>
+          <input class="inp" id="fSizeMin" type="number" inputmode="numeric" placeholder="50" oninput="onFilterChange()"></div>
+      </div>
+
+      <div class="field" style="margin-bottom:6px">
+        <label data-i18n="fMust">חובה שיהיה (לחיצה נוספת = חובה שלא יהיה)</label>
+        <div class="chips" id="featureChips"></div>
+        <div class="help" data-i18n="fMustHelp">אפור = לא משנה · ירוק = חובה · אדום = לא רוצה</div>
+      </div>
+    </div>
+
+    <div class="section-title" data-i18n="importTitle">הוספת מודעות</div>
+    <div class="card">
+      <div class="grid2" style="margin-bottom:9px">
+        <button class="btn btn-primary" onclick="openImportModal()">📥 <span data-i18n="importPaste">הדבק מודעות</span></button>
+        <button class="btn btn-ghost" onclick="openEditModal(null)">✏️ <span data-i18n="addManual">הוספה ידנית</span></button>
+      </div>
+      <button class="btn btn-soft btn-block" onclick="copyScrapePrompt()">🤖 <span data-i18n="copyPrompt">העתק פרומפט איסוף לקלוד</span></button>
+      <div class="help" data-i18n="copyPromptHelp">מעתיק הוראה מוכנה עם הפילטר הנוכחי + הדירות שכבר דחיתם. הדביקו אותה בשיחה עם קלוד כדי שיאסוף מודעות מהאתרים ויחזיר JSON.</div>
+    </div>
+
+    <div class="section-title" data-i18n="statsTitle">מצב המאגר</div>
+    <div class="grid3" id="statsGrid"></div>
+  </div>
+
+  <!-- ---- VIEW: REVIEW ---- -->
+  <div class="view" id="view-review">
+    <div class="row-between pad" style="padding-bottom:0">
+      <div class="tiny muted" id="reviewCounter">—</div>
+      <button class="btn btn-sm btn-ghost" id="undoBtn" onclick="undoLast()" disabled>↩️ <span data-i18n="undo">בטל</span></button>
+    </div>
+    <div class="deck" id="deck"></div>
+    <div id="reviewEmpty" class="hidden"></div>
+  </div>
+
+  <!-- ---- VIEW: TRACKED ---- -->
+  <div class="view" id="view-tracked">
+    <div class="tabs" id="trackTabs"></div>
+    <div class="pad">
+      <div class="row" style="margin-bottom:10px">
+        <input class="inp" id="trackSearch" placeholder="חיפוש חופשי…" oninput="renderTracked()">
+        <select class="inp" id="trackSort" style="width:auto" onchange="renderTracked()">
+          <option value="updated">עודכן לאחרונה</option>
+          <option value="rating">דירוג</option>
+          <option value="price">מחיר</option>
+          <option value="rooms">חדרים</option>
+        </select>
+      </div>
+      <div id="trackedList" class="cards-grid"></div>
+    </div>
+  </div>
+
+  <!-- ---- VIEW: COMPARE ---- -->
+  <div class="view pad" id="view-compare">
+    <div class="row-between" style="margin-bottom:10px">
+      <div>
+        <div style="font-weight:900" data-i18n="cmpTitle">השוואת דירות</div>
+        <div class="tiny muted" data-i18n="cmpSub">בחרו עד 4 דירות מהמעקב</div>
+      </div>
+      <button class="btn btn-sm btn-ghost no-print" onclick="window.print()">🖨️</button>
+    </div>
+    <div class="chips no-print" id="cmpPicker" style="margin-bottom:14px"></div>
+    <div id="cmpResult"></div>
+  </div>
+
+  <!-- ---- VIEW: REJECTED ---- -->
+  <div class="view pad" id="view-rejected">
+    <div class="info-box" style="margin-bottom:12px" data-i18n="rejInfo">
+      דירות שסימנתם "לא מעניין" לא יחזרו בייבוא הבא. אפשר להחזיר כל אחת מהן למאגר.</div>
+    <div id="rejectedList"></div>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav"></nav>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal-bg" id="modalSettings" onclick="if(event.target===this)closeModal('modalSettings')">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="settings">הגדרות</h3>
+      <button class="icon-btn" onclick="closeModal('modalSettings')">✕</button></div>
+    <div class="modal-body" id="settingsBody"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalImport" onclick="if(event.target===this)closeModal('modalImport')">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="importTitle">הוספת מודעות</h3>
+      <button class="icon-btn" onclick="closeModal('modalImport')">✕</button></div>
+    <div class="modal-body">
+      <div class="info-box" style="margin-bottom:12px" data-i18n="importHelp">
+        הדביקו JSON שקיבלתם מקלוד, או פשוט את טקסט המודעה כפי שהוא — האפליקציה תנסה לזהות מחיר, חדרים, קומה ותוספות אוטומטית.</div>
+      <div class="field">
+        <label data-i18n="importPasteLabel">הדבקה</label>
+        <textarea class="inp" id="importText" style="min-height:190px;font-family:monospace;font-size:13px;direction:ltr;text-align:left"
+          placeholder='[{"city":"תל אביב","street":"הרצל","price":6000,"rooms":3}]  ← או טקסט מודעה חופשי'></textarea>
+      </div>
+      <div id="importPreview"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modalImport')" data-i18n="cancel">ביטול</button>
+      <button class="btn btn-primary" style="flex:2" onclick="runImport()" data-i18n="importBtn">ייבא</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalEdit" onclick="if(event.target===this)closeModal('modalEdit')">
+  <div class="modal">
+    <div class="modal-head"><h3 id="editTitle">דירה</h3>
+      <button class="icon-btn" onclick="closeModal('modalEdit')">✕</button></div>
+    <div class="modal-body" id="editBody"></div>
+    <div class="modal-foot" id="editFoot"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalJoin" onclick="if(event.target===this)closeModal('modalJoin')">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="obJoin">התחבר עם קוד</h3>
+      <button class="icon-btn" onclick="closeModal('modalJoin')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="joinCodeLabel">קוד מרחב עבודה</label>
+        <input class="inp" id="joinCodeInput" style="text-align:center;font-size:24px;font-weight:900;letter-spacing:5px;direction:ltr"
+          maxlength="8" placeholder="ABCD1234" oninput="this.value=this.value.toUpperCase()"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modalJoin')" data-i18n="cancel">ביטול</button>
+      <button class="btn btn-primary" style="flex:2" onclick="joinWorkspace()" data-i18n="connect">התחבר</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ╔══════════════════════════════════════════════════════════════════════╗
+// ║  APP CONFIGURATION — ערכו את הערכים כאן                              ║
+// ╚══════════════════════════════════════════════════════════════════════╝
+
+const APP_VERSION = "1.0.0";                      // גרסה — העלו בכל עדכון
+const APP_NAME    = "HomeRent Finder";            // שם פנימי (לקבצי גיבוי)
+const GITHUB_REPO = "dimitryu/App_HomeRent";      // ריפו לבדיקת עדכונים
+
+// ── Firebase — הדביקו כאן את הקונפיג מהפרויקט שלכם ──────────────────────
+// Firebase Console → Project settings → Your apps → Web app → firebaseConfig
+// כל עוד apiKey ריק — האפליקציה עובדת במצב מקומי בלבד (localStorage).
+const FIREBASE_CONFIG = {
+  apiKey:            "",   // ← הדביקו כאן
+  authDomain:        "",   // ← הדביקו כאן
+  projectId:         "",   // ← הדביקו כאן
+  storageBucket:     "",   // ← הדביקו כאן
+  messagingSenderId: "",   // ← הדביקו כאן
+  appId:             ""    // ← הדביקו כאן
+};
+
+// ╚══════════════════════════════════════════════════════════════════════╝
+
+/* ==================== FEATURES SCHEMA ==================== */
+const FEATURES = [
+  {k:'parking',    e:'🅿️', he:'חניה',          ru:'Парковка',      en:'Parking'},
+  {k:'mamad',      e:'🛡️', he:'ממ"ד',          ru:'Безопас. комн.', en:'Safe room'},
+  {k:'elevator',   e:'🛗', he:'מעלית',          ru:'Лифт',          en:'Elevator'},
+  {k:'balcony',    e:'🌇', he:'מרפסת',          ru:'Балкон',        en:'Balcony'},
+  {k:'masterBed',  e:'🛏️', he:'חדר הורים',     ru:'Спальня родит.', en:'Master bedroom'},
+  {k:'teenRoom',   e:'🎧', he:'חדר מתבגר',      ru:'Комн. подростка',en:'Teen room'},
+  {k:'storage',    e:'📦', he:'מחסן',           ru:'Кладовая',      en:'Storage'},
+  {k:'aircon',     e:'❄️', he:'מיזוג',          ru:'Кондиционер',   en:'A/C'},
+  {k:'furnished',  e:'🛋️', he:'מרוהטת',        ru:'С мебелью',     en:'Furnished'},
+  {k:'renovated',  e:'✨', he:'משופצת',         ru:'После ремонта', en:'Renovated'},
+  {k:'accessible', e:'♿', he:'נגישה',           ru:'Доступная',     en:'Accessible'},
+  {k:'pets',       e:'🐕', he:'חיות מחמד',      ru:'Можно животных',en:'Pets OK'},
+  {k:'garden',     e:'🌿', he:'גינה',           ru:'Сад',           en:'Garden'},
+  {k:'sunTerrace', e:'☀️', he:'מרפסת שמש',      ru:'Солн. терраса', en:'Sun terrace'},
+];
+const TRACK_STATUSES = [
+  {k:'toCheck',  e:'🔍', cls:'info',  he:'לבדיקה',        ru:'Проверить',   en:'To check'},
+  {k:'contacted',e:'📞', cls:'acc',   he:'יצרתי קשר',     ru:'Связался',    en:'Contacted'},
+  {k:'scheduled',e:'📅', cls:'warn',  he:'נקבע ביקור',    ru:'Назначен визит', en:'Visit set'},
+  {k:'visited',  e:'👀', cls:'ok',    he:'ראיתי',         ru:'Посетил',     en:'Visited'},
+  {k:'shortlist',e:'⭐', cls:'ok',    he:'רשימה קצרה',    ru:'Шорт-лист',   en:'Shortlist'},
+  {k:'gone',     e:'🚫', cls:'dang',  he:'ירדה מהפרק',    ru:'Снята',       en:'Off market'},
+];
+
+/* ==================== I18N ==================== */
+const TRANSLATIONS = {
+he:{appName:'מנהל חיפוש דירות',settings:'הגדרות',appearance:'מראה',darkMode:'מצב כהה',fontSize:'גודל גופן',
+ language:'שפה',small:'קטן',medium:'בינוני',large:'גדול',extraLarge:'ענק',backup:'גיבוי נתונים',export:'ייצוא',
+ import:'ייבוא',version:'גרסה',checkUpdate:'בדוק עדכונים',about:'אודות',save:'שמור',cancel:'ביטול',
+ delete:'מחק',confirm:'אישור',close:'סגור',connect:'התחבר',reset:'אפס',undo:'בטל',edit:'עריכה',
+ navSearch:'חיפוש',navReview:'סקירה',navTracked:'מעקב',navCompare:'השוואה',navRejected:'נדחו',
+ onboardSub:'אספו מודעות, סננו, ונהלו מעקב על הדירות שמעניינות אתכם',
+ obCloudTitle:'סנכרון בין מכשירים',obCloudDesc:'צרו מרחב עבודה חדש וקבלו קוד חיבור. הזינו את הקוד במכשירים אחרים כדי לראות את אותו מאגר.',
+ obCreate:'צור מרחב חדש',obJoin:'התחבר עם קוד',obLocalTitle:'מכשיר יחיד',
+ obLocalDesc:'כל הנתונים נשמרים במכשיר הזה בלבד. אפשר לייצא ולייבא קובץ גיבוי בכל רגע.',
+ obLocalBtn:'התחל במצב מקומי',obNoFirebase:'Firebase לא מוגדר עדיין. ערכו את FIREBASE_CONFIG בראש index.html כדי לאפשר סנכרון.',
+ filterTitle:'פילטר חיפוש',fCity:'עיר',fHoods:'שכונות (מופרד בפסיק)',fPriceMin:'מחיר מ־ (₪)',fPriceMax:'מחיר עד (₪)',
+ fRoomsMin:'חדרים מ־',fRoomsMax:'חדרים עד',fFloorMin:'קומה מ־',fFloorMax:'קומה עד',fSizeMin:'מ״ר מ־',
+ fMust:'חובה שיהיה (לחיצה נוספת = חובה שלא יהיה)',fMustHelp:'אפור = לא משנה · ירוק = חובה · אדום = לא רוצה',
+ importTitle:'הוספת מודעות',importPaste:'הדבק מודעות',addManual:'הוספה ידנית',copyPrompt:'העתק פרומפט איסוף לקלוד',
+ copyPromptHelp:'מעתיק הוראה מוכנה עם הפילטר הנוכחי + הדירות שכבר דחיתם. הדביקו אותה בשיחה עם קלוד כדי שיאסוף מודעות מהאתרים ויחזיר JSON.',
+ statsTitle:'מצב המאגר',importHelp:'הדביקו JSON שקיבלתם מקלוד, או פשוט את טקסט המודעה כפי שהוא — האפליקציה תנסה לזהות מחיר, חדרים, קומה ותוספות אוטומטית.',
+ importPasteLabel:'הדבקה',importBtn:'ייבא',joinCodeLabel:'קוד מרחב עבודה',
+ cmpTitle:'השוואת דירות',cmpSub:'בחרו עד 4 דירות מהמעקב',
+ rejInfo:'דירות שסימנתם "לא מעניין" לא יחזרו בייבוא הבא. אפשר להחזיר כל אחת מהן למאגר.',
+ stNew:'ממתינות',stLiked:'במעקב',stRejected:'נדחו',stMatch:'תואמות פילטר',
+ notInteresting:'לא מעניין',interesting:'מעניין',skip:'דלג',
+ emptyReviewT:'אין דירות לסקירה',emptyReviewS:'ייבאו מודעות חדשות במסך החיפוש, או הרחיבו את הפילטר',
+ emptyTrackT:'אין דירות במעקב',emptyTrackS:'סמנו "מעניין" בסקירה כדי שדירות יופיעו כאן',
+ emptyRejT:'לא דחיתם עדיין אף דירה',emptyRejS:'דירות שתדחו יופיעו כאן ולא יחזרו בייבוא',
+ emptyCmpT:'בחרו דירות להשוואה',emptyCmpS:'לחצו על שמות הדירות למעלה',
+ notes:'הערות',notesPh:'מה אהבתי, מה הפריע, מה לשאול את המתווך…',rating:'דירוג',status:'סטטוס',
+ fieldCity:'עיר',fieldHood:'שכונה',fieldStreet:'רחוב',fieldNum:'מספר בית',fieldFloor:'קומה',
+ fieldFloors:'מתוך קומות',fieldRooms:'חדרים',fieldSize:'גודל (מ״ר)',fieldPrice:'מחיר (₪)',
+ fieldDesc:'תיאור',fieldBath:'שירותים',fieldShower:'מקלחות',fieldEntry:'תאריך כניסה',
+ fieldContact:'איש קשר',fieldPhone:'טלפון',fieldUrl:'קישור למודעה',fieldSource:'מקור',fieldExtras:'תוספות',
+ saved:'נשמר',deleted:'נמחק',copied:'הועתק ללוח',importedN:'יובאו {n} דירות',
+ importDup:'{n} כפילויות דולגו',importRej:'{n} דירות דחויות דולגו',importNone:'לא נמצאו דירות תקינות',
+ confirmDelete:'למחוק את הדירה?',confirmReset:'לאפס את כל הפילטר?',
+ updateAvailable:'קיים עדכון',updateNow:'לעדכן עכשיו?',upToDate:'האפליקציה מעודכנת',
+ importSuccess:'הנתונים יובאו בהצלחה',importError:'שגיאת ייבוא',invalidBackup:'קובץ גיבוי לא תקין',
+ wsCode:'קוד מרחב עבודה',wsCodeHelp:'הזינו את הקוד במכשירים אחרים כדי לסנכרן',
+ mode:'מצב עבודה',modeCloud:'ענן — מסונכרן',modeLocal:'מקומי — מכשיר זה בלבד',
+ leaveWs:'התנתק ואפס מכשיר',confirmLeave:'לנתק את המכשיר הזה? הנתונים בענן יישארו.',
+ codeNotFound:'קוד לא נמצא',connected:'מחובר בהצלחה',restore:'החזר למאגר',restored:'הוחזר למאגר',
+ perRoom:'₪ לחדר',perSqm:'₪ למ״ר',noAddr:'ללא כתובת',floorGround:'קרקע',rooms:'חד׳',sqm:'מ״ר',
+ all:'הכל',totalTracked:'סה״כ במעקב',avgPrice:'מחיר ממוצע',cheapest:'הזול ביותר',biggest:'הגדול ביותר'},
+
+ru:{appName:'Поиск квартир',settings:'Настройки',appearance:'Вид',darkMode:'Тёмная тема',fontSize:'Размер шрифта',
+ language:'Язык',small:'Мелкий',medium:'Средний',large:'Крупный',extraLarge:'Очень крупный',backup:'Резервная копия',
+ export:'Экспорт',import:'Импорт',version:'Версия',checkUpdate:'Проверить обновления',about:'О программе',
+ save:'Сохранить',cancel:'Отмена',delete:'Удалить',confirm:'ОК',close:'Закрыть',connect:'Подключиться',
+ reset:'Сброс',undo:'Отменить',edit:'Изменить',
+ navSearch:'Поиск',navReview:'Просмотр',navTracked:'Избранное',navCompare:'Сравнение',navRejected:'Отклонённые',
+ onboardSub:'Собирайте объявления, фильтруйте и отслеживайте интересные квартиры',
+ obCloudTitle:'Синхронизация устройств',obCloudDesc:'Создайте рабочее пространство и получите код. Введите его на других устройствах.',
+ obCreate:'Создать',obJoin:'Ввести код',obLocalTitle:'Одно устройство',
+ obLocalDesc:'Данные хранятся только здесь. Экспорт и импорт доступны всегда.',
+ obLocalBtn:'Локальный режим',obNoFirebase:'Firebase не настроен. Заполните FIREBASE_CONFIG в index.html.',
+ filterTitle:'Фильтр поиска',fCity:'Город',fHoods:'Районы (через запятую)',fPriceMin:'Цена от (₪)',fPriceMax:'Цена до (₪)',
+ fRoomsMin:'Комнат от',fRoomsMax:'Комнат до',fFloorMin:'Этаж от',fFloorMax:'Этаж до',fSizeMin:'м² от',
+ fMust:'Обязательно (второй клик = не хочу)',fMustHelp:'Серый = не важно · Зелёный = обязательно · Красный = не хочу',
+ importTitle:'Добавить объявления',importPaste:'Вставить',addManual:'Вручную',copyPrompt:'Скопировать промпт для Claude',
+ copyPromptHelp:'Копирует готовую инструкцию с текущим фильтром и списком отклонённых. Вставьте её в чат с Claude.',
+ statsTitle:'Состояние базы',importHelp:'Вставьте JSON от Claude или просто текст объявления — приложение попробует распознать цену, комнаты и этаж.',
+ importPasteLabel:'Вставка',importBtn:'Импорт',joinCodeLabel:'Код пространства',
+ cmpTitle:'Сравнение квартир',cmpSub:'Выберите до 4 квартир',
+ rejInfo:'Отклонённые квартиры не вернутся при следующем импорте. Их можно вернуть.',
+ stNew:'Ожидают',stLiked:'В избранном',stRejected:'Отклонено',stMatch:'По фильтру',
+ notInteresting:'Не интересно',interesting:'Интересно',skip:'Пропустить',
+ emptyReviewT:'Нет квартир для просмотра',emptyReviewS:'Импортируйте объявления или расширьте фильтр',
+ emptyTrackT:'Список пуст',emptyTrackS:'Отметьте «Интересно» при просмотре',
+ emptyRejT:'Отклонённых нет',emptyRejS:'Отклонённые появятся здесь',
+ emptyCmpT:'Выберите квартиры',emptyCmpS:'Нажмите на названия выше',
+ notes:'Заметки',notesPh:'Что понравилось, что смутило, что спросить…',rating:'Оценка',status:'Статус',
+ fieldCity:'Город',fieldHood:'Район',fieldStreet:'Улица',fieldNum:'Дом №',fieldFloor:'Этаж',
+ fieldFloors:'Всего этажей',fieldRooms:'Комнат',fieldSize:'Площадь (м²)',fieldPrice:'Цена (₪)',
+ fieldDesc:'Описание',fieldBath:'Санузлы',fieldShower:'Душевые',fieldEntry:'Дата заселения',
+ fieldContact:'Контакт',fieldPhone:'Телефон',fieldUrl:'Ссылка',fieldSource:'Источник',fieldExtras:'Дополнительно',
+ saved:'Сохранено',deleted:'Удалено',copied:'Скопировано',importedN:'Импортировано: {n}',
+ importDup:'Дубликатов пропущено: {n}',importRej:'Отклонённых пропущено: {n}',importNone:'Не найдено данных',
+ confirmDelete:'Удалить квартиру?',confirmReset:'Сбросить фильтр?',
+ updateAvailable:'Доступно обновление',updateNow:'Обновить сейчас?',upToDate:'Версия актуальна',
+ importSuccess:'Данные импортированы',importError:'Ошибка импорта',invalidBackup:'Неверный файл',
+ wsCode:'Код пространства',wsCodeHelp:'Введите его на других устройствах',
+ mode:'Режим',modeCloud:'Облако — синхронно',modeLocal:'Локально — только здесь',
+ leaveWs:'Отключить устройство',confirmLeave:'Отключить это устройство? Данные в облаке останутся.',
+ codeNotFound:'Код не найден',connected:'Подключено',restore:'Вернуть',restored:'Возвращено',
+ perRoom:'₪ за комнату',perSqm:'₪ за м²',noAddr:'Без адреса',floorGround:'Цоколь',rooms:'комн.',sqm:'м²',
+ all:'Все',totalTracked:'Всего',avgPrice:'Средняя цена',cheapest:'Самая дешёвая',biggest:'Самая большая'},
+
+en:{appName:'Rental Finder',settings:'Settings',appearance:'Appearance',darkMode:'Dark mode',fontSize:'Font size',
+ language:'Language',small:'Small',medium:'Medium',large:'Large',extraLarge:'Extra large',backup:'Data backup',
+ export:'Export',import:'Import',version:'Version',checkUpdate:'Check for updates',about:'About',
+ save:'Save',cancel:'Cancel',delete:'Delete',confirm:'OK',close:'Close',connect:'Connect',
+ reset:'Reset',undo:'Undo',edit:'Edit',
+ navSearch:'Search',navReview:'Review',navTracked:'Tracked',navCompare:'Compare',navRejected:'Rejected',
+ onboardSub:'Collect listings, filter them, and track the apartments you like',
+ obCloudTitle:'Multi-device sync',obCloudDesc:'Create a workspace and get a code. Enter it on other devices to share the same data.',
+ obCreate:'Create workspace',obJoin:'Join with code',obLocalTitle:'Single device',
+ obLocalDesc:'Data stays on this device only. Export and import a backup file anytime.',
+ obLocalBtn:'Start local mode',obNoFirebase:'Firebase is not configured. Edit FIREBASE_CONFIG at the top of index.html.',
+ filterTitle:'Search filter',fCity:'City',fHoods:'Neighborhoods (comma separated)',fPriceMin:'Price from (₪)',fPriceMax:'Price to (₪)',
+ fRoomsMin:'Rooms from',fRoomsMax:'Rooms to',fFloorMin:'Floor from',fFloorMax:'Floor to',fSizeMin:'Sqm from',
+ fMust:'Must have (click again = must NOT have)',fMustHelp:'Grey = any · Green = required · Red = excluded',
+ importTitle:'Add listings',importPaste:'Paste listings',addManual:'Add manually',copyPrompt:'Copy scraping prompt for Claude',
+ copyPromptHelp:'Copies a ready instruction with your current filter and rejected listings. Paste it into a Claude chat to collect listings as JSON.',
+ statsTitle:'Database status',importHelp:'Paste JSON from Claude, or just the raw listing text — the app will try to detect price, rooms, floor and features.',
+ importPasteLabel:'Paste here',importBtn:'Import',joinCodeLabel:'Workspace code',
+ cmpTitle:'Compare apartments',cmpSub:'Pick up to 4 tracked apartments',
+ rejInfo:'Rejected apartments will not come back on the next import. You can restore any of them.',
+ stNew:'Pending',stLiked:'Tracked',stRejected:'Rejected',stMatch:'Filter match',
+ notInteresting:'Not interested',interesting:'Interested',skip:'Skip',
+ emptyReviewT:'Nothing to review',emptyReviewS:'Import new listings, or widen your filter',
+ emptyTrackT:'Nothing tracked yet',emptyTrackS:'Mark apartments as interesting while reviewing',
+ emptyRejT:'No rejected apartments',emptyRejS:'Rejected ones appear here and never come back',
+ emptyCmpT:'Pick apartments to compare',emptyCmpS:'Tap the names above',
+ notes:'Notes',notesPh:'What you liked, what bothered you, what to ask…',rating:'Rating',status:'Status',
+ fieldCity:'City',fieldHood:'Neighborhood',fieldStreet:'Street',fieldNum:'House no.',fieldFloor:'Floor',
+ fieldFloors:'Of floors',fieldRooms:'Rooms',fieldSize:'Size (sqm)',fieldPrice:'Price (₪)',
+ fieldDesc:'Description',fieldBath:'Toilets',fieldShower:'Showers',fieldEntry:'Entry date',
+ fieldContact:'Contact',fieldPhone:'Phone',fieldUrl:'Listing URL',fieldSource:'Source',fieldExtras:'Extras',
+ saved:'Saved',deleted:'Deleted',copied:'Copied',importedN:'{n} apartments imported',
+ importDup:'{n} duplicates skipped',importRej:'{n} rejected ones skipped',importNone:'No valid listings found',
+ confirmDelete:'Delete this apartment?',confirmReset:'Reset the whole filter?',
+ updateAvailable:'Update available',updateNow:'Update now?',upToDate:'You are up to date',
+ importSuccess:'Data imported',importError:'Import error',invalidBackup:'Invalid backup file',
+ wsCode:'Workspace code',wsCodeHelp:'Enter it on your other devices to sync',
+ mode:'Mode',modeCloud:'Cloud — synced',modeLocal:'Local — this device only',
+ leaveWs:'Disconnect this device',confirmLeave:'Disconnect this device? Cloud data stays.',
+ codeNotFound:'Code not found',connected:'Connected',restore:'Restore',restored:'Restored',
+ perRoom:'₪ per room',perSqm:'₪ per sqm',noAddr:'No address',floorGround:'Ground',rooms:'rm',sqm:'sqm',
+ all:'All',totalTracked:'Total tracked',avgPrice:'Average price',cheapest:'Cheapest',biggest:'Largest'}
+};
+let LANG = localStorage.getItem('hr_lang') || 'he';
+function t(k, vars){
+  let s = (TRANSLATIONS[LANG] && TRANSLATIONS[LANG][k]) || TRANSLATIONS.en[k] || k;
+  if(vars) for(const v in vars) s = s.replace('{'+v+'}', vars[v]);
+  return s;
+}
+function featLabel(f){ return f[LANG] || f.en; }
+function statusLabel(s){ return s[LANG] || s.en; }
+
+/* ==================== STATE ==================== */
+const LS = {
+  mode:'hr_mode', ws:'hr_ws', code:'hr_code', theme:'hr_theme', lang:'hr_lang',
+  font:'hr_fontScale', filter:'hr_filter', listings:'hr_listings', rejected:'hr_rejected'
+};
+let MODE = localStorage.getItem(LS.mode) || null;      // 'cloud' | 'local'
+let WS_ID = localStorage.getItem(LS.ws) || null;
+let db = null, fbReady = false;
+let LISTINGS = {};          // id -> listing
+let REJECTED = {};          // fingerprint -> {fp, id, addr, price, at}
+let FILTER = {feat:{}};
+let currentView = 'search';
+let deckIndex = 0;
+let lastAction = null;      // for undo
+let cmpSelected = [];
+let trackFilter = 'all';
+
+const DEFAULT_FILTER = {city:'',hoods:'',priceMin:'',priceMax:'',roomsMin:'',roomsMax:'',
+  floorMin:'',floorMax:'',sizeMin:'',feat:{}};
+
+/* ==================== UTIL ==================== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { const n = parseFloat(String(v).replace(/[^\d.\-]/g,'')); return isNaN(n)?null:n; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+function fmtMoney(n){ if(n==null||n==='') return '—'; return '₪' + Number(n).toLocaleString('he-IL'); }
+function fmtFloor(f){ if(f==null||f==='') return '—'; return Number(f)===0 ? t('floorGround') : String(f); }
+
+function showToast(msg, type){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type||'') + ' show';
+  clearTimeout(el._tm);
+  el._tm = setTimeout(()=> el.className = 'toast ' + (type||''), 2600);
+}
+function confetti(){
+  const c = $('#confetti'); c.innerHTML = '';
+  const cols = ['#0F766E','#14b8a6','#FFB703','#3BB273','#7C5CBF','#E63946'];
+  for(let i=0;i<46;i++){
+    const p = document.createElement('div'); p.className = 'cf';
+    const sz = 5 + Math.random()*8;
+    p.style.cssText = 'left:'+(Math.random()*100)+'%;top:-'+sz+'px;background:'+cols[i%cols.length]+
+      ';border-radius:'+(Math.random()>.5?'50%':'3px')+';width:'+sz+'px;height:'+sz+'px;'+
+      'animation-delay:'+(Math.random()*.5)+'s;animation-duration:'+(1.1+Math.random()*.7)+'s;';
+    c.appendChild(p);
+  }
+  setTimeout(()=> c.innerHTML = '', 2100);
+}
+function openModal(id){ $('#'+id).classList.add('active'); }
+function closeModal(id){ $('#'+id).classList.remove('active'); }
+
+/* ==================== LISTING MODEL ==================== */
+function blankListing(){
+  const f = {}; FEATURES.forEach(x => f[x.k] = false);
+  return {id:uid(), source:'manual', url:'', city:'', hood:'', street:'', houseNum:'',
+    floor:null, floors:null, rooms:null, size:null, price:null, desc:'',
+    bath:null, shower:null, entry:'', contact:'', phone:'', feat:f,
+    status:'new', rating:0, notes:'', track:'toCheck', visitDate:'',
+    createdAt:Date.now(), updatedAt:Date.now()};
+}
+function normalizeListing(raw){
+  const l = blankListing();
+  const map = {city:['city','עיר'],hood:['hood','neighborhood','neighbourhood','שכונה'],
+    street:['street','רחוב'],houseNum:['houseNum','houseNumber','number','house_number','מספר'],
+    floor:['floor','קומה'],floors:['floors','totalFloors','total_floors'],
+    rooms:['rooms','חדרים'],size:['size','sqm','area','מ״ר','מטר'],
+    price:['price','rent','מחיר'],desc:['desc','description','text','תיאור'],
+    bath:['bath','baths','toilets','bathrooms','שירותים'],shower:['shower','showers','מקלחות'],
+    entry:['entry','entryDate','entry_date','available','כניסה'],
+    contact:['contact','contactName','name','איש קשר'],phone:['phone','tel','טלפון'],
+    url:['url','link','href','קישור'],source:['source','site','מקור']};
+  for(const key in map){
+    for(const alias of map[key]){
+      if(raw[alias]!==undefined && raw[alias]!==null && raw[alias]!==''){ l[key] = raw[alias]; break; }
+    }
+  }
+  ['floor','floors','rooms','size','price','bath','shower'].forEach(k => l[k] = num(l[k]));
+  ['city','hood','street','houseNum','desc','entry','contact','phone','url','source'].forEach(k => l[k] = String(l[k]||'').trim());
+  if(!l.source) l.source = 'import';
+  // features: nested object, flat keys, or array of strings
+  const fsrc = raw.feat || raw.features || raw.extras || raw.amenities || {};
+  FEATURES.forEach(f => {
+    if(Array.isArray(fsrc)){
+      l.feat[f.k] = fsrc.some(x => String(x).toLowerCase().includes(f.k.toLowerCase()) || String(x).includes(f.he));
+    } else if(typeof fsrc === 'object' && fsrc[f.k] !== undefined){
+      l.feat[f.k] = !!fsrc[f.k];
+    } else if(raw[f.k] !== undefined){
+      l.feat[f.k] = !!raw[f.k];
+    }
+  });
+  // fall back to text detection over the whole blob
+  const blob = [l.desc, JSON.stringify(fsrc), raw.text||''].join(' ');
+  applyTextFeatures(l, blob);
+  return l;
+}
+const FEATURE_WORDS = {
+  parking:[/חני[יה]/, /parking/i, /парков/i],
+  mamad:[/ממ["״']?ד/, /מרחב מוגן/, /safe ?room/i],
+  elevator:[/מעלית/, /elevator/i, /лифт/i],
+  balcony:[/מרפסת/, /balcon/i, /балкон/i],
+  masterBed:[/חדר הורים/, /יחידת הורים/, /master ?bed/i],
+  teenRoom:[/חדר מתבגר/, /יחידת דיור/, /teen ?room/i],
+  storage:[/מחסן/, /storage/i, /кладов/i],
+  aircon:[/מיזוג/, /מזגן/, /air ?con/i, /кондиционер/i],
+  furnished:[/מרוהט/, /ריהוט/, /furnish/i, /мебел/i],
+  renovated:[/משופצ/, /שיפוץ/, /renovat/i, /ремонт/i],
+  accessible:[/נגיש/, /accessib/i],
+  pets:[/חיות מחמד/, /מותר בע["״']?ח/, /pets? ?(ok|allowed)/i],
+  garden:[/גינה/, /garden/i, /сад/i],
+  sunTerrace:[/מרפסת שמש/, /sun ?terrace/i],
+};
+function applyTextFeatures(l, text){
+  if(!text) return;
+  const neg = /(ללא|אין|בלי|no |without )\s*$/;
+  for(const k in FEATURE_WORDS){
+    if(l.feat[k]) continue;
+    for(const re of FEATURE_WORDS[k]){
+      const m = text.match(re);
+      if(m){
+        const before = text.slice(Math.max(0, m.index-8), m.index);
+        if(!neg.test(before)) l.feat[k] = true;
+        break;
+      }
+    }
+  }
+}
+/* free-text Hebrew listing parser */
+function parseFreeText(text){
+  const l = blankListing(); l.source = 'paste'; l.desc = text.trim();
+  let m;
+  if((m = text.match(/(\d[\d,]{2,7})\s*(?:₪|ש["״']?ח|שקל)/))) l.price = num(m[1]);
+  else if((m = text.match(/(?:מחיר|שכ["״']?ד|price)[:\s]*([\d,]{3,7})/i))) l.price = num(m[1]);
+  if((m = text.match(/(\d+(?:[.,]5)?)\s*חדרים/))) l.rooms = num(String(m[1]).replace(',','.'));
+  else if((m = text.match(/(?:חדרים|rooms)[:\s]*(\d+(?:[.,]5)?)/i))) l.rooms = num(String(m[1]).replace(',','.'));
+  if(/קומת\s*קרקע|קומה\s*0\b/.test(text)) l.floor = 0;
+  else if((m = text.match(/קומה\s*(\d{1,2})/))) l.floor = num(m[1]);
+  else if((m = text.match(/(?:floor|этаж)[:\s]*(\d{1,2})/i))) l.floor = num(m[1]);
+  if((m = text.match(/מתוך\s*(\d{1,2})/))) l.floors = num(m[1]);
+  if((m = text.match(/(\d{2,4})\s*(?:מ["״']?ר|מ"ר|מטר|sqm|м2|м²)/))) l.size = num(m[1]);
+  if((m = text.match(/(?:רחוב|רח['׳]?)\s*([֐-׿"'\-\s]{2,25}?)\s*(\d{1,4})?\s*(?:[,\n|·]|$)/))){
+    l.street = m[1].trim(); if(m[2]) l.houseNum = m[2];
+  }
+  if((m = text.match(/(?:שכונ[הת])\s*([֐-׿\-\s]{2,25}?)\s*(?:[,\n|·]|$)/))) l.hood = m[1].trim();
+  if((m = text.match(/(?:^|[,\n\s])[בלמ]?(תל אביב(?:[\-\s]יפו)?|ירושלים|חיפה|באר שבע|ראשון לציון|פתח תקוו?ה|נתניה|חולון|רמת גן|בת ים|אשדוד|אשקלון|רחובות|הרצליה|כפר סבא|רעננה|מודיעין|בני ברק|גבעתיים|רמת השרון|הוד השרון|נס ציונה|לוד|רמלה|אילת|טבריה|עפולה|נהריה|עכו|כרמיאל|קרית גת|קרית שמונה|דימונה|יבנה|קרית אונו|אור יהודה|רמת אביב)/))) l.city = m[1].trim();
+  if((m = text.match(/(https?:\/\/\S+)/))) l.url = m[1];
+  if((m = text.match(/(0\d{1,2}[\-\s]?\d{3}[\-\s]?\d{4})/))) l.phone = m[1];
+  if((m = text.match(/(\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4})/))) l.entry = m[1];
+  const bm = text.match(/(\d)\s*שירותים/); if(bm) l.bath = num(bm[1]);
+  const sm = text.match(/(\d)\s*מקלחות/); if(sm) l.shower = num(sm[1]);
+  applyTextFeatures(l, text);
+  return l;
+}
+function fingerprint(l){
+  if(l.url){
+    const u = String(l.url).trim().toLowerCase().replace(/[?#].*$/,'').replace(/\/$/,'');
+    return 'u:' + u;
+  }
+  const parts = [l.city, l.street, l.houseNum, l.rooms, l.floor, l.price]
+    .map(x => String(x==null?'':x).trim().toLowerCase().replace(/\s+/g,''));
+  return 'a:' + parts.join('|');
+}
+function addrOf(l){
+  const p = [];
+  if(l.street) p.push(l.street + (l.houseNum ? ' ' + l.houseNum : ''));
+  if(l.hood) p.push(l.hood);
+  if(l.city) p.push(l.city);
+  return p.length ? p.join(', ') : t('noAddr');
+}
+
+/* ==================== DATA LAYER ==================== */
+function initFirebase(){
+  if(!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) return false;
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    fbReady = true;
+    return true;
+  }catch(e){ console.warn('Firebase init failed', e); return false; }
+}
+function saveLocal(){
+  localStorage.setItem(LS.listings, JSON.stringify(LISTINGS));
+  localStorage.setItem(LS.rejected, JSON.stringify(REJECTED));
+}
+function loadLocal(){
+  try{ LISTINGS = JSON.parse(localStorage.getItem(LS.listings) || '{}'); }catch(e){ LISTINGS = {}; }
+  try{ REJECTED = JSON.parse(localStorage.getItem(LS.rejected) || '{}'); }catch(e){ REJECTED = {}; }
+}
+function wsRef(){ return db.collection('workspaces').doc(WS_ID); }
+
+async function putListing(l, silent){
+  l.updatedAt = Date.now();
+  LISTINGS[l.id] = l;
+  if(MODE === 'cloud' && fbReady){
+    try{ await wsRef().collection('listings').doc(l.id).set(l); }
+    catch(e){ console.warn(e); showToast('שגיאת שמירה בענן', 'err'); }
+  } else saveLocal();
+  if(!silent) renderAll();
+}
+async function removeListing(id){
+  delete LISTINGS[id];
+  if(MODE === 'cloud' && fbReady){
+    try{ await wsRef().collection('listings').doc(id).delete(); }catch(e){ console.warn(e); }
+  } else saveLocal();
+  renderAll();
+}
+async function putRejected(entry){
+  REJECTED[entry.fp] = entry;
+  if(MODE === 'cloud' && fbReady){
+    try{ await wsRef().collection('rejected').doc(btoa(unescape(encodeURIComponent(entry.fp))).replace(/[^A-Za-z0-9]/g,'').slice(0,80) || uid()).set(entry); }
+    catch(e){ console.warn(e); }
+  } else saveLocal();
+}
+async function unreject(fp){
+  const key = Object.keys(REJECTED).find(k => k === fp);
+  if(key) delete REJECTED[key];
+  if(MODE === 'cloud' && fbReady){
+    try{
+      const snap = await wsRef().collection('rejected').where('fp','==',fp).get();
+      snap.forEach(d => d.ref.delete());
+    }catch(e){ console.warn(e); }
+  } else saveLocal();
+}
+function subscribeCloud(){
+  wsRef().collection('listings').onSnapshot(snap => {
+    snap.docChanges().forEach(ch => {
+      if(ch.type === 'removed') delete LISTINGS[ch.doc.id];
+      else LISTINGS[ch.doc.id] = ch.doc.data();
+    });
+    renderAll();
+  }, e => { console.warn(e); showToast('שגיאת סנכרון', 'err'); });
+  wsRef().collection('rejected').onSnapshot(snap => {
+    snap.docChanges().forEach(ch => {
+      const d = ch.doc.data();
+      if(ch.type === 'removed') delete REJECTED[d.fp];
+      else REJECTED[d.fp] = d;
+    });
+    renderAll();
+  }, e => console.warn(e));
+}
+
+/* ==================== WORKSPACE ==================== */
+function genCode(n){
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:n||8}, () => c[Math.floor(Math.random()*c.length)]).join('');
+}
+async function createWorkspace(){
+  if(!fbReady){ showToast(t('obNoFirebase'), 'err'); return; }
+  try{
+    const id = db.collection('workspaces').doc().id;
+    const code = genCode(8);
+    await db.collection('workspaces').doc(id).set({createdAt: Date.now(), app: APP_NAME});
+    await db.collection('joinCodes').doc(code).set({workspaceId: id, createdAt: Date.now()});
+    MODE = 'cloud'; WS_ID = id;
+    localStorage.setItem(LS.mode, 'cloud');
+    localStorage.setItem(LS.ws, id);
+    localStorage.setItem(LS.code, code);
+    // migrate anything already stored locally
+    loadLocal();
+    for(const id2 in LISTINGS){ await wsRef().collection('listings').doc(id2).set(LISTINGS[id2]); }
+    subscribeCloud();
+    enterApp();
+    confetti();
+    showToast(t('wsCode') + ': ' + code, 'ok');
+  }catch(e){ console.error(e); showToast('שגיאה ביצירת מרחב', 'err'); }
+}
+function showJoinModal(){
+  if(!fbReady){ showToast(t('obNoFirebase'), 'err'); return; }
+  openModal('modalJoin'); setTimeout(()=> $('#joinCodeInput').focus(), 150);
+}
+async function joinWorkspace(){
+  const code = ($('#joinCodeInput').value || '').trim().toUpperCase();
+  if(code.length < 4){ showToast(t('codeNotFound'), 'err'); return; }
+  try{
+    const snap = await db.collection('joinCodes').doc(code).get();
+    if(!snap.exists){ showToast(t('codeNotFound'), 'err'); return; }
+    MODE = 'cloud'; WS_ID = snap.data().workspaceId;
+    localStorage.setItem(LS.mode, 'cloud');
+    localStorage.setItem(LS.ws, WS_ID);
+    localStorage.setItem(LS.code, code);
+    LISTINGS = {}; REJECTED = {};
+    subscribeCloud();
+    closeModal('modalJoin'); closeModal('modalSettings');
+    enterApp();
+    showToast(t('connected'), 'ok');
+  }catch(e){ console.error(e); showToast('שגיאת חיבור', 'err'); }
+}
+function startLocal(){
+  MODE = 'local';
+  localStorage.setItem(LS.mode, 'local');
+  loadLocal();
+  enterApp();
+}
+function leaveWorkspace(){
+  if(!confirm(t('confirmLeave'))) return;
+  [LS.mode, LS.ws, LS.code].forEach(k => localStorage.removeItem(k));
+  location.reload();
+}
+
+/* ==================== FILTER ==================== */
+function loadFilter(){
+  try{ FILTER = Object.assign({}, DEFAULT_FILTER, JSON.parse(localStorage.getItem(LS.filter) || '{}')); }
+  catch(e){ FILTER = Object.assign({}, DEFAULT_FILTER); }
+  if(!FILTER.feat) FILTER.feat = {};
+  ['city','hoods','priceMin','priceMax','roomsMin','roomsMax','floorMin','floorMax','sizeMin']
+    .forEach(k => { const el = $('#f' + k.charAt(0).toUpperCase() + k.slice(1)); if(el) el.value = FILTER[k] || ''; });
+  renderFeatureChips();
+}
+function onFilterChange(){
+  ['city','hoods','priceMin','priceMax','roomsMin','roomsMax','floorMin','floorMax','sizeMin']
+    .forEach(k => { const el = $('#f' + k.charAt(0).toUpperCase() + k.slice(1)); if(el) FILTER[k] = el.value.trim(); });
+  localStorage.setItem(LS.filter, JSON.stringify(FILTER));
+  renderAll();
+}
+function toggleFeatureFilter(k){
+  if(!FILTER.feat) FILTER.feat = {};
+  const cur = FILTER.feat[k];
+  if(cur === undefined || cur === null) FILTER.feat[k] = true;
+  else if(cur === true) FILTER.feat[k] = false;
+  else delete FILTER.feat[k];
+  localStorage.setItem(LS.filter, JSON.stringify(FILTER));
+  renderFeatureChips(); renderAll();
+}
+function resetFilter(){
+  if(!confirm(t('confirmReset'))) return;
+  FILTER = JSON.parse(JSON.stringify(DEFAULT_FILTER));
+  localStorage.setItem(LS.filter, JSON.stringify(FILTER));
+  loadFilter(); renderAll();
+  showToast(t('reset'), 'ok');
+}
+function renderFeatureChips(){
+  const box = $('#featureChips'); if(!box) return;
+  const feat = (FILTER && FILTER.feat) || {};
+  box.innerHTML = FEATURES.map(f => {
+    const v = feat[f.k];
+    const cls = v === true ? 'chip on' : (v === false ? 'chip tri-no' : 'chip');
+    return '<span class="'+cls+'" onclick="toggleFeatureFilter(\''+f.k+'\')">'+f.e+' '+esc(featLabel(f))+'</span>';
+  }).join('');
+}
+function matchesFilter(l){
+  const F = FILTER || {};
+  if(!F.feat) F.feat = {};
+  if(F.city && !String(l.city||'').includes(F.city.trim())) return false;
+  if(F.hoods){
+    const hoods = F.hoods.split(',').map(s => s.trim()).filter(Boolean);
+    if(hoods.length){
+      const hay = (l.hood||'') + ' ' + (l.street||'') + ' ' + (l.desc||'');
+      if(!hoods.some(h => hay.includes(h))) return false;
+    }
+  }
+  const rng = (v, min, max) => {
+    if(min !== '' && min != null && (v == null || v < parseFloat(min))) return false;
+    if(max !== '' && max != null && (v == null || v > parseFloat(max))) return false;
+    return true;
+  };
+  if(!rng(l.price, F.priceMin, F.priceMax)) return false;
+  if(!rng(l.rooms, F.roomsMin, F.roomsMax)) return false;
+  if(!rng(l.floor, F.floorMin, F.floorMax)) return false;
+  if(F.sizeMin !== '' && F.sizeMin != null && (l.size == null || l.size < parseFloat(F.sizeMin))) return false;
+  for(const k in F.feat){
+    const want = F.feat[k];
+    const has = !!(l.feat && l.feat[k]);
+    if(want === true && !has) return false;
+    if(want === false && has) return false;
+  }
+  return true;
+}
+function filterSummaryText(){
+  const p = [];
+  if(FILTER.city) p.push(FILTER.city);
+  if(FILTER.hoods) p.push(FILTER.hoods.split(',').length + ' ' + (LANG==='he'?'שכונות':LANG==='ru'?'районов':'hoods'));
+  if(FILTER.priceMin || FILTER.priceMax) p.push('₪' + (FILTER.priceMin||'0') + '–' + (FILTER.priceMax||'∞'));
+  if(FILTER.roomsMin || FILTER.roomsMax) p.push((FILTER.roomsMin||'0') + '–' + (FILTER.roomsMax||'∞') + ' ' + t('rooms'));
+  const nf = Object.keys(FILTER.feat||{}).length;
+  if(nf) p.push(nf + ' ' + (LANG==='he'?'תנאים':LANG==='ru'?'условий':'conditions'));
+  return p.length ? p.join(' · ') : (LANG==='he'?'ללא סינון — הכל מוצג':LANG==='ru'?'Без фильтра':'No filter');
+}
+
+/* ==================== NAV / VIEWS ==================== */
+const VIEWS = [
+  {k:'search',   e:'🔎', i18n:'navSearch'},
+  {k:'review',   e:'🃏', i18n:'navReview'},
+  {k:'tracked',  e:'⭐', i18n:'navTracked'},
+  {k:'compare',  e:'⚖️', i18n:'navCompare'},
+  {k:'rejected', e:'🗑️', i18n:'navRejected'},
+];
+function renderNav(){
+  const pending = pendingList().length;
+  $('#bottomNav').innerHTML = VIEWS.map(v =>
+    '<button class="nav-item'+(currentView===v.k?' active':'')+'" onclick="go(\''+v.k+'\')">'+
+      '<span class="ic">'+v.e+'</span><span>'+esc(t(v.i18n))+'</span>'+
+      (v.k==='review' && pending ? '<span class="nav-badge">'+pending+'</span>' : '')+
+    '</button>').join('');
+}
+function go(view){
+  currentView = view;
+  $$('.view').forEach(el => el.style.display = 'none');
+  const el = $('#view-' + view); if(el) el.style.display = 'block';
+  const v = VIEWS.find(x => x.k === view);
+  $('#viewTitle').textContent = v ? t(v.i18n) : '';
+  renderNav(); renderAll();
+  window.scrollTo(0,0);
+}
+function enterApp(){
+  $('#screen-loading').classList.remove('active');
+  $('#screen-onboard').classList.remove('active');
+  $('#screen-app').classList.add('active');
+  const dot = $('#syncDot');
+  dot.className = 'sync-dot ' + (MODE === 'cloud' ? 'on' : 'local');
+  dot.title = MODE === 'cloud' ? t('modeCloud') : t('modeLocal');
+  loadFilter();
+  go('search');
+}
+
+/* ==================== SELECTORS ==================== */
+const all = () => Object.values(LISTINGS);
+const pendingList = () => all().filter(l => l.status === 'new' && matchesFilter(l))
+  .sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+const likedList = () => all().filter(l => l.status === 'liked');
+const rejectedArr = () => Object.values(REJECTED).sort((a,b) => (b.at||0) - (a.at||0));
+
+/* ==================== RENDER ==================== */
+function renderAll(){
+  if(!$('#screen-app').classList.contains('active')) return;
+  renderNav();
+  if(currentView === 'search')   { $('#filterSummary').textContent = filterSummaryText(); renderStats(); }
+  if(currentView === 'review')   renderDeck();
+  if(currentView === 'tracked')  { renderTrackTabs(); renderTracked(); }
+  if(currentView === 'compare')  renderCompare();
+  if(currentView === 'rejected') renderRejected();
+}
+function renderStats(){
+  const A = all();
+  const s = [
+    {v:A.filter(l=>l.status==='new').length, l:t('stNew'), c:'var(--info)'},
+    {v:likedList().length,                   l:t('stLiked'), c:'var(--success)'},
+    {v:rejectedArr().length,                 l:t('stRejected'), c:'var(--danger)'},
+  ];
+  $('#statsGrid').innerHTML = s.map(x =>
+    '<div class="card" style="text-align:center;padding:12px 6px">'+
+    '<div style="font-size:calc(1.5rem * var(--font-scale));font-weight:900;color:'+x.c+'">'+x.v+'</div>'+
+    '<div class="tiny muted" style="font-weight:700">'+esc(x.l)+'</div></div>').join('') +
+    '<div class="card" style="grid-column:1/-1;text-align:center;padding:10px">'+
+    '<b style="color:var(--accent)">'+pendingList().length+'</b> <span class="small muted">'+esc(t('stMatch'))+'</span></div>';
+}
+function featPills(l, max){
+  const on = FEATURES.filter(f => l.feat && l.feat[f.k]);
+  const show = max ? on.slice(0, max) : on;
+  let html = show.map(f => '<span class="pill">'+f.e+' '+esc(featLabel(f))+'</span>').join('');
+  if(max && on.length > max) html += '<span class="pill">+'+(on.length-max)+'</span>';
+  return html;
+}
+
+/* ---------- REVIEW DECK ---------- */
+function renderDeck(){
+  const list = pendingList();
+  const deck = $('#deck'), empty = $('#reviewEmpty');
+  $('#reviewCounter').textContent = list.length
+    ? (LANG==='he' ? list.length + ' דירות ממתינות' : LANG==='ru' ? list.length + ' в очереди' : list.length + ' pending')
+    : '';
+  $('#undoBtn').disabled = !lastAction;
+  if(!list.length){
+    deck.innerHTML = ''; deck.style.display = 'none';
+    empty.classList.remove('hidden');
+    empty.innerHTML = '<div class="empty"><div class="empty-icon">🏘️</div>'+
+      '<div class="empty-title">'+esc(t('emptyReviewT'))+'</div>'+
+      '<div class="empty-sub">'+esc(t('emptyReviewS'))+'</div>'+
+      '<button class="btn btn-primary" style="margin-top:16px" onclick="go(\'search\')">'+esc(t('navSearch'))+'</button></div>';
+    return;
+  }
+  deck.style.display = 'block'; empty.classList.add('hidden');
+  const top3 = list.slice(0,3);
+  deck.innerHTML = top3.map((l,i) => cardHtml(l, i)).reverse().join('');
+  const topEl = deck.querySelector('.swipe-card:not(.behind):not(.behind2)');
+  if(topEl) attachSwipe(topEl, top3[0]);
+}
+function cardHtml(l, i){
+  const cls = i===0 ? '' : (i===1 ? ' behind' : ' behind2');
+  const ppr = (l.price && l.rooms) ? Math.round(l.price / l.rooms) : null;
+  const pps = (l.price && l.size)  ? Math.round(l.price / l.size)  : null;
+  return '<div class="swipe-card'+cls+'" data-id="'+esc(l.id)+'">'+
+    '<div class="stamp stamp-yes">✓</div><div class="stamp stamp-no">✕</div>'+
+    '<div class="sc-head">'+
+      '<div class="sc-price">'+fmtMoney(l.price)+'</div>'+
+      '<div class="sc-addr">'+esc(addrOf(l))+'</div>'+
+      '<div class="sc-sub">'+esc(l.hood || l.city || '')+(l.source?' · '+esc(l.source):'')+'</div>'+
+    '</div>'+
+    '<div class="sc-body">'+
+      '<div class="sc-stats">'+
+        '<div class="stat"><div class="stat-v">'+(l.rooms??'—')+'</div><div class="stat-l">'+esc(t('rooms'))+'</div></div>'+
+        '<div class="stat"><div class="stat-v">'+(l.size??'—')+'</div><div class="stat-l">'+esc(t('sqm'))+'</div></div>'+
+        '<div class="stat"><div class="stat-v">'+fmtFloor(l.floor)+'</div><div class="stat-l">'+esc(t('fieldFloor'))+'</div></div>'+
+        '<div class="stat"><div class="stat-v">'+((l.bath??0)+(l.shower??0)||'—')+'</div><div class="stat-l">'+esc(t('fieldBath'))+'/'+esc(t('fieldShower'))+'</div></div>'+
+      '</div>'+
+      (ppr||pps ? '<div class="row" style="gap:6px;margin-bottom:11px;flex-wrap:wrap">'+
+        (ppr?'<span class="pill acc">'+fmtMoney(ppr)+' '+esc(LANG==='he'?'לחדר':LANG==='ru'?'за комн.':'per room')+'</span>':'')+
+        (pps?'<span class="pill acc">'+fmtMoney(pps)+' '+esc(LANG==='he'?'למ״ר':LANG==='ru'?'за м²':'per sqm')+'</span>':'')+'</div>' : '')+
+      '<div class="lc-meta" style="margin-bottom:12px">'+featPills(l)+'</div>'+
+      (l.entry ? '<div class="pill info" style="margin-bottom:10px">📅 '+esc(l.entry)+'</div>' : '')+
+      (l.desc ? '<div class="sc-desc">'+esc(l.desc)+'</div>' : '<div class="tiny muted">—</div>')+
+      (l.url ? '<div style="margin-top:12px"><a class="btn btn-sm btn-ghost" href="'+esc(l.url)+'" target="_blank" rel="noopener">🔗 '+(LANG==='he'?'פתח מודעה':'Open listing')+'</a></div>' : '')+
+      '<div style="margin-top:12px"><button class="btn btn-sm btn-ghost" onclick="openEditModal(\''+esc(l.id)+'\')">✏️ '+esc(t('edit'))+'</button></div>'+
+    '</div>'+
+    '<div class="sc-actions">'+
+      '<button class="act act-no" onclick="decide(\''+esc(l.id)+'\',\'rejected\')">✕ '+esc(t('notInteresting'))+'</button>'+
+      '<button class="act act-skip" onclick="skipCard(\''+esc(l.id)+'\')" title="'+esc(t('skip'))+'">⏭️</button>'+
+      '<button class="act act-yes" onclick="decide(\''+esc(l.id)+'\',\'liked\')">✓ '+esc(t('interesting'))+'</button>'+
+    '</div></div>';
+}
+function attachSwipe(el, listing){
+  let startX = 0, startY = 0, dx = 0, dy = 0, active = false;
+  const yes = el.querySelector('.stamp-yes'), no = el.querySelector('.stamp-no');
+  const RTL = document.documentElement.dir === 'rtl';
+  const down = e => {
+    if(e.target.closest('button, a, .sc-body')) return;
+    active = true; el.classList.add('dragging');
+    const p = e.touches ? e.touches[0] : e;
+    startX = p.clientX; startY = p.clientY;
+  };
+  const move = e => {
+    if(!active) return;
+    const p = e.touches ? e.touches[0] : e;
+    dx = p.clientX - startX; dy = p.clientY - startY;
+    if(Math.abs(dx) < Math.abs(dy) && Math.abs(dy) > 24){ return; }
+    if(e.cancelable) e.preventDefault();
+    el.style.transform = 'translate('+dx+'px,'+(dy*0.25)+'px) rotate('+(dx/22)+'deg)';
+    const likeDir = RTL ? -1 : 1;
+    const prog = Math.min(Math.abs(dx)/110, 1);
+    if(dx * likeDir > 0){ yes.style.opacity = prog; no.style.opacity = 0; }
+    else { no.style.opacity = prog; yes.style.opacity = 0; }
+  };
+  const up = () => {
+    if(!active) return;
+    active = false; el.classList.remove('dragging');
+    const likeDir = RTL ? -1 : 1;
+    if(Math.abs(dx) > 100){
+      const liked = (dx * likeDir) > 0;
+      el.style.transform = 'translate('+(dx>0?900:-900)+'px,'+dy+'px) rotate('+(dx/12)+'deg)';
+      el.style.opacity = '0';
+      setTimeout(()=> decide(listing.id, liked ? 'liked' : 'rejected'), 170);
+    } else {
+      el.style.transform = ''; yes.style.opacity = 0; no.style.opacity = 0;
+    }
+    dx = 0; dy = 0;
+  };
+  el.addEventListener('touchstart', down, {passive:true});
+  el.addEventListener('touchmove', move, {passive:false});
+  el.addEventListener('touchend', up);
+  el.addEventListener('mousedown', down);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
+}
+async function decide(id, status){
+  const l = LISTINGS[id]; if(!l) return;
+  lastAction = {id, prev: l.status, fp: fingerprint(l)};
+  l.status = status;
+  if(status === 'rejected'){
+    await putRejected({fp: fingerprint(l), id: l.id, addr: addrOf(l), price: l.price ?? null, at: Date.now()});
+  } else if(status === 'liked'){
+    if(!l.track) l.track = 'toCheck';
+    confetti();
+  }
+  await putListing(l);
+  showToast(status === 'liked' ? '⭐ ' + t('interesting') : '✕ ' + t('notInteresting'),
+            status === 'liked' ? 'ok' : '');
+}
+function skipCard(id){
+  const l = LISTINGS[id]; if(!l) return;
+  l.createdAt = (l.createdAt || Date.now()) - 1e9;  // push to back of queue
+  putListing(l);
+}
+async function undoLast(){
+  if(!lastAction) return;
+  const l = LISTINGS[lastAction.id]; if(!l) return;
+  if(l.status === 'rejected') await unreject(lastAction.fp);
+  l.status = lastAction.prev || 'new';
+  lastAction = null;
+  await putListing(l);
+  showToast(t('undo'), 'info');
+}
+
+/* ---------- TRACKED ---------- */
+function renderTrackTabs(){
+  const counts = {all: likedList().length};
+  TRACK_STATUSES.forEach(s => counts[s.k] = likedList().filter(l => (l.track||'toCheck') === s.k).length);
+  const tabs = [{k:'all', e:'📋', label:t('all')}].concat(
+    TRACK_STATUSES.map(s => ({k:s.k, e:s.e, label:statusLabel(s)})));
+  $('#trackTabs').innerHTML = tabs.map(x =>
+    '<button class="tab-btn'+(trackFilter===x.k?' active':'')+'" onclick="setTrackFilter(\''+x.k+'\')">'+
+    x.e+' '+esc(x.label)+' ('+(counts[x.k]||0)+')</button>').join('');
+}
+function setTrackFilter(k){ trackFilter = k; renderTrackTabs(); renderTracked(); }
+function renderTracked(){
+  let list = likedList();
+  if(trackFilter !== 'all') list = list.filter(l => (l.track||'toCheck') === trackFilter);
+  const q = ($('#trackSearch') && $('#trackSearch').value || '').trim().toLowerCase();
+  if(q) list = list.filter(l => JSON.stringify([l.city,l.hood,l.street,l.desc,l.notes,l.contact]).toLowerCase().includes(q));
+  const sort = ($('#trackSort') && $('#trackSort').value) || 'updated';
+  list.sort((a,b) => {
+    if(sort === 'rating') return (b.rating||0) - (a.rating||0);
+    if(sort === 'price')  return (a.price ?? 1e9) - (b.price ?? 1e9);
+    if(sort === 'rooms')  return (b.rooms ?? 0) - (a.rooms ?? 0);
+    return (b.updatedAt||0) - (a.updatedAt||0);
+  });
+  const box = $('#trackedList');
+  if(!list.length){
+    box.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div>'+
+      '<div class="empty-title">'+esc(t('emptyTrackT'))+'</div>'+
+      '<div class="empty-sub">'+esc(t('emptyTrackS'))+'</div></div>';
+    return;
+  }
+  box.innerHTML = list.map(l => {
+    const st = TRACK_STATUSES.find(s => s.k === (l.track||'toCheck')) || TRACK_STATUSES[0];
+    return '<div class="list-card" onclick="openEditModal(\''+esc(l.id)+'\')">'+
+      '<div class="lc-top"><div class="lc-addr">'+esc(addrOf(l))+'</div><div class="lc-price">'+fmtMoney(l.price)+'</div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+        '<span class="pill '+st.cls+'">'+st.e+' '+esc(statusLabel(st))+'</span>'+
+        '<span class="pill">'+(l.rooms??'—')+' '+esc(t('rooms'))+'</span>'+
+        (l.size?'<span class="pill">'+l.size+' '+esc(t('sqm'))+'</span>':'')+
+        '<span class="pill">'+esc(t('fieldFloor'))+' '+fmtFloor(l.floor)+'</span>'+
+        '<span class="spacer"></span>'+
+        '<span class="stars">'+[1,2,3,4,5].map(n=>'<span class="star'+((l.rating||0)>=n?' on':'')+'">★</span>').join('')+'</span>'+
+      '</div>'+
+      '<div class="lc-meta">'+featPills(l, 5)+'</div>'+
+      (l.notes ? '<div class="lc-note">📝 '+esc(l.notes)+'</div>' : '')+
+    '</div>';
+  }).join('');
+}
+
+/* ---------- REJECTED ---------- */
+function renderRejected(){
+  const list = rejectedArr();
+  const box = $('#rejectedList');
+  if(!list.length){
+    box.innerHTML = '<div class="empty"><div class="empty-icon">🗑️</div>'+
+      '<div class="empty-title">'+esc(t('emptyRejT'))+'</div>'+
+      '<div class="empty-sub">'+esc(t('emptyRejS'))+'</div></div>';
+    return;
+  }
+  box.innerHTML = list.map(r =>
+    '<div class="list-card" style="cursor:default">'+
+      '<div class="lc-top"><div class="lc-addr">'+esc(r.addr||'—')+'</div>'+
+      '<div class="lc-price">'+fmtMoney(r.price)+'</div></div>'+
+      '<div class="row"><span class="tiny muted">'+new Date(r.at||0).toLocaleDateString('he-IL')+'</span>'+
+      '<span class="spacer"></span>'+
+      '<button class="btn btn-sm btn-soft" onclick="restoreRejected(\''+esc(r.fp).replace(/\\/g,'\\\\')+'\')">↩️ '+esc(t('restore'))+'</button></div>'+
+    '</div>').join('');
+}
+async function restoreRejected(fp){
+  await unreject(fp);
+  const l = all().find(x => fingerprint(x) === fp);
+  if(l){ l.status = 'new'; await putListing(l); }
+  else renderAll();
+  showToast(t('restored'), 'ok');
+}
+
+/* ---------- COMPARE ---------- */
+function renderCompare(){
+  const list = likedList();
+  const picker = $('#cmpPicker');
+  if(!list.length){
+    picker.innerHTML = '';
+    $('#cmpResult').innerHTML = '<div class="empty"><div class="empty-icon">⚖️</div>'+
+      '<div class="empty-title">'+esc(t('emptyTrackT'))+'</div>'+
+      '<div class="empty-sub">'+esc(t('emptyTrackS'))+'</div></div>';
+    return;
+  }
+  cmpSelected = cmpSelected.filter(id => LISTINGS[id] && LISTINGS[id].status === 'liked');
+  picker.innerHTML = list.map(l =>
+    '<span class="chip'+(cmpSelected.includes(l.id)?' on':'')+'" onclick="toggleCmp(\''+esc(l.id)+'\')">'+
+    esc(addrOf(l))+'</span>').join('');
+  const sel = cmpSelected.map(id => LISTINGS[id]).filter(Boolean);
+  if(sel.length < 2){
+    $('#cmpResult').innerHTML = '<div class="empty"><div class="empty-icon">👆</div>'+
+      '<div class="empty-title">'+esc(t('emptyCmpT'))+'</div>'+
+      '<div class="empty-sub">'+esc(t('emptyCmpS'))+'</div></div>';
+    return;
+  }
+  const minOf = f => Math.min.apply(null, sel.map(l => l[f] ?? Infinity));
+  const maxOf = f => Math.max.apply(null, sel.map(l => l[f] ?? -Infinity));
+  const bestPrice = minOf('price'), bestSize = maxOf('size'), bestRooms = maxOf('rooms');
+  const ppr = l => (l.price && l.rooms) ? Math.round(l.price/l.rooms) : null;
+  const pps = l => (l.price && l.size)  ? Math.round(l.price/l.size)  : null;
+  const bestPpr = Math.min.apply(null, sel.map(l => ppr(l) ?? Infinity));
+  const bestPps = Math.min.apply(null, sel.map(l => pps(l) ?? Infinity));
+  const rows = [
+    {l:t('fieldPrice'), f:l => fmtMoney(l.price), best:l => l.price === bestPrice},
+    {l:t('fieldRooms'), f:l => l.rooms ?? '—',    best:l => l.rooms === bestRooms},
+    {l:t('fieldSize'),  f:l => l.size ?? '—',     best:l => l.size === bestSize},
+    {l:t('perRoom'),    f:l => ppr(l)!=null?fmtMoney(ppr(l)):'—', best:l => ppr(l) === bestPpr},
+    {l:t('perSqm'),     f:l => pps(l)!=null?fmtMoney(pps(l)):'—', best:l => pps(l) === bestPps},
+    {l:t('fieldFloor'), f:l => fmtFloor(l.floor) + (l.floors?' / '+l.floors:'')},
+    {l:t('fieldHood'),  f:l => l.hood || '—'},
+    {l:t('fieldBath'),  f:l => l.bath ?? '—'},
+    {l:t('fieldShower'),f:l => l.shower ?? '—'},
+    {l:t('fieldEntry'), f:l => l.entry || '—'},
+    {l:t('rating'),     f:l => '★'.repeat(l.rating||0) || '—'},
+    {l:t('status'),     f:l => { const s = TRACK_STATUSES.find(x=>x.k===(l.track||'toCheck')); return s ? s.e+' '+statusLabel(s) : '—'; }},
+  ];
+  let html = '<div class="cmp-wrap"><table class="cmp"><thead><tr><th></th>' +
+    sel.map(l => '<th>'+esc(addrOf(l))+'</th>').join('') + '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += '<tr><th>'+esc(r.l)+'</th>' + sel.map(l => {
+      const v = r.f(l);
+      const isBest = r.best && r.best(l) && sel.length > 1;
+      return '<td'+(isBest?' class="cmp-best"':'')+'>'+esc(v)+(isBest?' ✓':'')+'</td>';
+    }).join('') + '</tr>';
+  });
+  // feature matrix
+  FEATURES.forEach(f => {
+    if(!sel.some(l => l.feat && l.feat[f.k])) return;
+    html += '<tr><th>'+f.e+' '+esc(featLabel(f))+'</th>' +
+      sel.map(l => '<td>'+((l.feat&&l.feat[f.k]) ? '<span style="color:var(--success);font-weight:900">✓</span>' : '<span style="color:var(--text3)">—</span>')+'</td>').join('') + '</tr>';
+  });
+  html += '<tr><th>'+esc(t('notes'))+'</th>' + sel.map(l =>
+    '<td style="white-space:normal;min-width:190px;max-width:250px;font-size:calc(.74rem * var(--font-scale));line-height:1.55">'+esc(l.notes||'—')+'</td>').join('') + '</tr>';
+  html += '</tbody></table></div>';
+  $('#cmpResult').innerHTML = html;
+}
+function toggleCmp(id){
+  const i = cmpSelected.indexOf(id);
+  if(i >= 0) cmpSelected.splice(i,1);
+  else { if(cmpSelected.length >= 4){ showToast('מקסימום 4', 'err'); return; } cmpSelected.push(id); }
+  renderCompare();
+}
+
+/* ---------- EDIT / DETAIL MODAL ---------- */
+let editingId = null;
+function openEditModal(id){
+  editingId = id;
+  const l = id ? JSON.parse(JSON.stringify(LISTINGS[id])) : blankListing();
+  window._editDraft = l;
+  $('#editTitle').textContent = id ? addrOf(l) : t('addManual');
+  const F = (key, label, type, extra) =>
+    '<div class="field"><label>'+esc(label)+'</label>'+
+    '<input class="inp" id="ed_'+key+'" type="'+(type||'text')+'" '+(extra||'')+
+    ' value="'+esc(l[key] ?? '')+'"></div>';
+  let html = '';
+  if(id && l.status === 'liked'){
+    html += '<div class="card" style="margin-bottom:14px">'+
+      '<div class="field"><label>'+esc(t('status'))+'</label><div class="chips" id="ed_trackChips">'+
+        TRACK_STATUSES.map(s => '<span class="chip'+((l.track||'toCheck')===s.k?' on':'')+'" data-k="'+s.k+'" onclick="pickTrack(this)">'+s.e+' '+esc(statusLabel(s))+'</span>').join('')+
+      '</div></div>'+
+      '<div class="field"><label>'+esc(t('rating'))+'</label>'+
+        '<div class="stars" id="ed_stars" style="font-size:28px">'+[1,2,3,4,5].map(n=>
+          '<span class="star'+((l.rating||0)>=n?' on':'')+'" onclick="pickStar('+n+')">★</span>').join('')+'</div></div>'+
+      '<div class="field" style="margin-bottom:0"><label>'+esc(t('notes'))+'</label>'+
+        '<textarea class="inp" id="ed_notes" placeholder="'+esc(t('notesPh'))+'">'+esc(l.notes||'')+'</textarea></div>'+
+    '</div>';
+  }
+  html += '<div class="grid2">'+F('city',t('fieldCity'))+F('hood',t('fieldHood'))+'</div>'+
+    '<div class="grid2">'+F('street',t('fieldStreet'))+F('houseNum',t('fieldNum'))+'</div>'+
+    '<div class="grid3">'+F('floor',t('fieldFloor'),'number','inputmode="numeric"')+
+      F('floors',t('fieldFloors'),'number','inputmode="numeric"')+
+      F('rooms',t('fieldRooms'),'number','step="0.5" inputmode="decimal"')+'</div>'+
+    '<div class="grid3">'+F('size',t('fieldSize'),'number','inputmode="numeric"')+
+      F('bath',t('fieldBath'),'number','inputmode="numeric"')+
+      F('shower',t('fieldShower'),'number','inputmode="numeric"')+'</div>'+
+    '<div class="grid2">'+F('price',t('fieldPrice'),'number','inputmode="numeric"')+F('entry',t('fieldEntry'))+'</div>'+
+    '<div class="grid2">'+F('contact',t('fieldContact'))+F('phone',t('fieldPhone'),'tel')+'</div>'+
+    F('url',t('fieldUrl'),'url')+
+    '<div class="field"><label>'+esc(t('fieldExtras'))+'</label><div class="chips" id="ed_feats">'+
+      FEATURES.map(f => '<span class="chip'+(l.feat&&l.feat[f.k]?' on':'')+'" data-k="'+f.k+'" onclick="this.classList.toggle(\'on\')">'+
+      f.e+' '+esc(featLabel(f))+'</span>').join('')+'</div></div>'+
+    '<div class="field"><label>'+esc(t('fieldDesc'))+'</label>'+
+      '<textarea class="inp" id="ed_desc" style="min-height:120px">'+esc(l.desc||'')+'</textarea></div>';
+  if(l.url) html += '<a class="btn btn-ghost btn-block" href="'+esc(l.url)+'" target="_blank" rel="noopener">🔗 '+(LANG==='he'?'פתח מודעה מקורית':'Open original')+'</a>';
+  $('#editBody').innerHTML = html;
+
+  let foot = '<button class="btn btn-ghost" style="flex:1" onclick="closeModal(\'modalEdit\')">'+esc(t('cancel'))+'</button>';
+  if(id) foot += '<button class="btn btn-danger" onclick="deleteListing(\''+esc(id)+'\')">🗑️</button>';
+  if(id && l.status !== 'liked') foot += '<button class="btn btn-success" style="flex:1" onclick="saveEdit(true)">⭐ '+esc(t('interesting'))+'</button>';
+  foot += '<button class="btn btn-primary" style="flex:1.4" onclick="saveEdit(false)">'+esc(t('save'))+'</button>';
+  $('#editFoot').innerHTML = foot;
+  openModal('modalEdit');
+}
+function pickTrack(el){
+  $$('#ed_trackChips .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  window._editDraft.track = el.dataset.k;
+}
+function pickStar(n){
+  window._editDraft.rating = (window._editDraft.rating === n) ? 0 : n;
+  $$('#ed_stars .star').forEach((s,i) => s.classList.toggle('on', i < window._editDraft.rating));
+}
+async function saveEdit(alsoLike){
+  const l = window._editDraft;
+  ['city','hood','street','houseNum','entry','contact','phone','url'].forEach(k => {
+    const el = $('#ed_'+k); if(el) l[k] = el.value.trim();
+  });
+  ['floor','floors','rooms','size','price','bath','shower'].forEach(k => {
+    const el = $('#ed_'+k); if(el) l[k] = el.value === '' ? null : num(el.value);
+  });
+  const d = $('#ed_desc'); if(d) l.desc = d.value;
+  const n = $('#ed_notes'); if(n) l.notes = n.value;
+  const feats = {}; FEATURES.forEach(f => feats[f.k] = false);
+  $$('#ed_feats .chip').forEach(c => { if(c.classList.contains('on')) feats[c.dataset.k] = true; });
+  l.feat = feats;
+  if(alsoLike){ l.status = 'liked'; if(!l.track) l.track = 'toCheck'; confetti(); }
+  if(!editingId) l.createdAt = Date.now();
+  await putListing(l);
+  closeModal('modalEdit');
+  showToast(t('saved'), 'ok');
+}
+async function deleteListing(id){
+  if(!confirm(t('confirmDelete'))) return;
+  await removeListing(id);
+  closeModal('modalEdit');
+  showToast(t('deleted'), '');
+}
+
+/* ---------- IMPORT ---------- */
+function openImportModal(){
+  $('#importText').value = '';
+  $('#importPreview').innerHTML = '';
+  openModal('modalImport');
+}
+function extractJson(text){
+  const s = text.trim();
+  try{ const p = JSON.parse(s); return Array.isArray(p) ? p : [p]; }catch(e){}
+  const a = s.indexOf('['), b = s.lastIndexOf(']');
+  if(a >= 0 && b > a){ try{ const p = JSON.parse(s.slice(a, b+1)); if(Array.isArray(p)) return p; }catch(e){} }
+  const o = s.indexOf('{'), c = s.lastIndexOf('}');
+  if(o >= 0 && c > o){ try{ const p = JSON.parse(s.slice(o, c+1)); return [p]; }catch(e){} }
+  return null;
+}
+async function runImport(){
+  const text = $('#importText').value;
+  if(!text.trim()){ showToast(t('importNone'), 'err'); return; }
+  let candidates = [];
+  const arr = extractJson(text);
+  if(arr && arr.length) candidates = arr.map(normalizeListing);
+  else {
+    // split by blank lines into multiple listings if it looks like several
+    const blocks = text.split(/\n\s*\n\s*\n/).map(s => s.trim()).filter(s => s.length > 20);
+    candidates = (blocks.length ? blocks : [text]).map(parseFreeText);
+  }
+  candidates = candidates.filter(l => l.price != null || l.rooms != null || l.street || l.city || l.url);
+  if(!candidates.length){ showToast(t('importNone'), 'err'); return; }
+  const existingFps = new Set(all().map(fingerprint));
+  let added = 0, dup = 0, rej = 0;
+  for(const l of candidates){
+    const fp = fingerprint(l);
+    if(REJECTED[fp]){ rej++; continue; }
+    if(existingFps.has(fp)){ dup++; continue; }
+    existingFps.add(fp);
+    await putListing(l, true);
+    added++;
+  }
+  if(MODE !== 'cloud') saveLocal();
+  closeModal('modalImport');
+  renderAll();
+  if(added) confetti();
+  const msg = [t('importedN',{n:added}), dup?t('importDup',{n:dup}):'', rej?t('importRej',{n:rej}):'']
+    .filter(Boolean).join(' · ');
+  showToast(msg, added ? 'ok' : 'info');
+  if(added) go('review');
+}
+function copyScrapePrompt(){
+  const F = FILTER;
+  const must = [], mustNot = [];
+  FEATURES.forEach(f => { if(F.feat[f.k] === true) must.push(f.he); if(F.feat[f.k] === false) mustNot.push(f.he); });
+  const rejUrls = rejectedArr().filter(r => String(r.fp).startsWith('u:')).slice(0,60)
+    .map(r => String(r.fp).slice(2));
+  const rejAddr = rejectedArr().filter(r => !String(r.fp).startsWith('u:')).slice(0,60)
+    .map(r => r.addr).filter(Boolean);
+  const schema = '{"city":"","hood":"","street":"","houseNum":"","floor":0,"floors":0,"rooms":0,"size":0,'+
+    '"price":0,"bath":0,"shower":0,"entry":"","contact":"","phone":"","url":"","source":"",'+
+    '"desc":"","feat":{'+FEATURES.map(f=>'"'+f.k+'":false').join(',')+'}}';
+  const p =
+'אנא אסוף עבורי מודעות של דירות להשכרה מאתרי הנדל"ן (יד2, מדלן, פייסבוק מרקטפלייס וכל מקור רלוונטי אחר) לפי הקריטריונים הבאים:\n\n'+
+'קריטריונים:\n'+
+(F.city ? '- עיר: ' + F.city + '\n' : '')+
+(F.hoods ? '- שכונות מועדפות: ' + F.hoods + '\n' : '')+
+((F.priceMin||F.priceMax) ? '- טווח מחירים: ' + (F.priceMin||'0') + ' עד ' + (F.priceMax||'ללא הגבלה') + ' ₪ לחודש\n' : '')+
+((F.roomsMin||F.roomsMax) ? '- מספר חדרים: ' + (F.roomsMin||'0') + ' עד ' + (F.roomsMax||'ללא הגבלה') + '\n' : '')+
+((F.floorMin||F.floorMax) ? '- קומה: ' + (F.floorMin||'0') + ' עד ' + (F.floorMax||'ללא הגבלה') + '\n' : '')+
+(F.sizeMin ? '- שטח מינימלי: ' + F.sizeMin + ' מ"ר\n' : '')+
+(must.length ? '- חובה שיהיה: ' + must.join(', ') + '\n' : '')+
+(mustNot.length ? '- לא רוצה: ' + mustNot.join(', ') + '\n' : '')+
+'\nלכל דירה שמצאת, אנא חלץ את כל הפרטים הבאים והחזר אותם כמערך JSON תקין (ורק JSON, בלי טקסט נוסף לפניו או אחריו):\n\n'+
+schema + '\n\n'+
+'הערות:\n'+
+'- floor: קומת קרקע = 0. אם לא ידוע — השאר null.\n'+
+'- כל שדה feat הוא true/false לפי מה שמופיע במודעה.\n'+
+'- desc: תיאור הדירה כפי שמופיע במודעה.\n'+
+'- url: קישור ישיר למודעה — חשוב מאוד, זה מונע כפילויות.\n'+
+'- source: שם האתר שממנו נלקחה המודעה.\n'+
+(rejUrls.length ? '\nאל תכלול את המודעות הבאות (כבר נדחו):\n' + rejUrls.map(u=>'- '+u).join('\n') + '\n' : '')+
+(rejAddr.length ? '\nאל תכלול את הכתובות הבאות (כבר נדחו):\n' + rejAddr.map(a=>'- '+a).join('\n') + '\n' : '');
+  copyText(p);
+}
+function copyText(str){
+  const done = () => showToast(t('copied'), 'ok');
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(str).then(done).catch(()=>fallback());
+  } else fallback();
+  function fallback(){
+    const ta = document.createElement('textarea');
+    ta.value = str; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ showToast('העתקה נכשלה', 'err'); }
+    document.body.removeChild(ta);
+  }
+}
+
+/* ==================== SETTINGS ==================== */
+function openSettings(){ renderSettings(); openModal('modalSettings'); }
+function renderSettings(){
+  const theme = document.documentElement.getAttribute('data-theme');
+  const font = localStorage.getItem(LS.font) || '1';
+  const code = localStorage.getItem(LS.code);
+  const fs = [['0.85',t('small')],['1',t('medium')],['1.15',t('large')],['1.3',t('extraLarge')]];
+  const langs = [['he','עברית'],['ru','Русский'],['en','English']];
+  $('#settingsBody').innerHTML =
+    '<div class="settings-group"><div class="section-title">'+esc(t('mode'))+'</div>'+
+      '<div class="card">'+
+        '<div class="row"><span class="sync-dot '+(MODE==='cloud'?'on':'local')+'"></span>'+
+        '<b>'+esc(MODE==='cloud'?t('modeCloud'):t('modeLocal'))+'</b></div>'+
+        (code ? '<div class="section-title" style="margin-top:14px">'+esc(t('wsCode'))+'</div>'+
+          '<div class="code-box" onclick="copyText(\''+esc(code)+'\')">'+esc(code)+'</div>'+
+          '<div class="help">'+esc(t('wsCodeHelp'))+'</div>' : '')+
+        (MODE==='local' && fbReady ? '<button class="btn btn-soft btn-block" style="margin-top:12px" onclick="createWorkspace()">☁️ '+esc(t('obCreate'))+'</button>'+
+          '<button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closeModal(\'modalSettings\');showJoinModal()">'+esc(t('obJoin'))+'</button>' : '')+
+        (MODE==='cloud' ? '<button class="btn btn-ghost btn-block" style="margin-top:12px" onclick="leaveWorkspace()">'+esc(t('leaveWs'))+'</button>' : '')+
+      '</div></div>'+
+
+    '<div class="settings-group"><div class="section-title">'+esc(t('appearance'))+'</div>'+
+      '<div class="settings-row"><span>🌙 '+esc(t('darkMode'))+'</span>'+
+        '<label class="toggle-switch"><input type="checkbox" id="themeToggle" '+(theme==='dark'?'checked':'')+
+        ' onchange="toggleTheme()"><span class="toggle-slider"></span></label></div>'+
+      '<div class="settings-row" style="display:block"><div style="margin-bottom:8px">🔤 '+esc(t('fontSize'))+'</div>'+
+        '<div class="chips">'+fs.map(f=>'<span class="chip'+(font===f[0]?' on':'')+'" onclick="setFontSize(\''+f[0]+'\')">'+esc(f[1])+'</span>').join('')+'</div></div>'+
+      '<div class="settings-row" style="display:block"><div style="margin-bottom:8px">🌐 '+esc(t('language'))+'</div>'+
+        '<div class="chips">'+langs.map(l=>'<span class="chip'+(LANG===l[0]?' on':'')+'" onclick="setLanguage(\''+l[0]+'\')">'+esc(l[1])+'</span>').join('')+'</div></div>'+
+    '</div>'+
+
+    '<div class="settings-group"><div class="section-title">'+esc(t('backup'))+'</div>'+
+      '<div class="row" style="gap:8px">'+
+        '<button class="btn btn-ghost" style="flex:1" onclick="exportData()">⬇️ '+esc(t('export'))+'</button>'+
+        '<button class="btn btn-ghost" style="flex:1" onclick="importBackup()">⬆️ '+esc(t('import'))+'</button>'+
+      '</div></div>'+
+
+    '<div class="settings-group"><div class="section-title">'+esc(t('about'))+'</div>'+
+      '<div class="settings-row"><span>'+esc(t('version'))+'</span><b>v'+APP_VERSION+'</b></div>'+
+      '<div class="settings-row"><span>Firebase</span><b>'+(fbReady?'✅':'—')+'</b></div>'+
+      '<button class="btn btn-primary btn-block" style="margin-top:10px" onclick="checkForUpdates(true)">🔄 '+esc(t('checkUpdate'))+'</button>'+
+      '<div class="help" style="text-align:center;margin-top:10px">'+esc(GITHUB_REPO)+'</div>'+
+    '</div>';
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(LS.theme, next);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', next === 'dark' ? '#0d1418' : '#0F766E');
+}
+function setFontSize(scale){
+  document.documentElement.style.setProperty('--font-scale', scale);
+  localStorage.setItem(LS.font, scale);
+  renderSettings();
+}
+function setLanguage(lang){
+  LANG = lang;
+  localStorage.setItem(LS.lang, lang);
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+  applyI18n();
+  renderSettings();
+  renderAll();
+}
+function applyI18n(){
+  $$('[data-i18n]').forEach(el => { const v = t(el.dataset.i18n); if(v) el.textContent = v; });
+  $$('[data-i18n-placeholder]').forEach(el => { const v = t(el.dataset.i18nPlaceholder); if(v) el.placeholder = v; });
+  const ts = $('#trackSort');
+  if(ts){
+    const opts = [['updated', LANG==='he'?'עודכן לאחרונה':LANG==='ru'?'По обновлению':'Last updated'],
+                  ['rating',  t('rating')], ['price', t('fieldPrice')], ['rooms', t('fieldRooms')]];
+    const cur = ts.value;
+    ts.innerHTML = opts.map(o => '<option value="'+o[0]+'">'+esc(o[1])+'</option>').join('');
+    ts.value = cur || 'updated';
+  }
+  const trs = $('#trackSearch');
+  if(trs) trs.placeholder = LANG==='he'?'חיפוש חופשי…':LANG==='ru'?'Поиск…':'Search…';
+  const v = VIEWS.find(x => x.k === currentView);
+  if(v) $('#viewTitle').textContent = t(v.i18n);
+  $('#loadTitle').textContent = t('appName');
+  renderFeatureChips();
+}
+
+/* ==================== BACKUP ==================== */
+function exportData(){
+  const data = {appName: APP_NAME, version: APP_VERSION, exportDate: new Date().toISOString(),
+    settings:{theme:localStorage.getItem(LS.theme), fontScale:localStorage.getItem(LS.font), lang:LANG},
+    filter: FILTER, listings: LISTINGS, rejected: REJECTED};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'HomeRent-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+  showToast(t('export') + ' ✓', 'ok');
+}
+function importBackup(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = async e => {
+    try{
+      const file = e.target.files[0]; if(!file) return;
+      const data = JSON.parse(await file.text());
+      if(!data.listings){ showToast(t('invalidBackup'), 'err'); return; }
+      if(data.settings){
+        if(data.settings.theme){ localStorage.setItem(LS.theme, data.settings.theme); document.documentElement.setAttribute('data-theme', data.settings.theme); }
+        if(data.settings.fontScale) setFontSize(data.settings.fontScale);
+        if(data.settings.lang) setLanguage(data.settings.lang);
+      }
+      if(data.filter){ FILTER = Object.assign({}, DEFAULT_FILTER, data.filter); localStorage.setItem(LS.filter, JSON.stringify(FILTER)); }
+      let n = 0;
+      for(const id in data.listings){
+        const l = data.listings[id];
+        if(!LISTINGS[l.id]){ await putListing(l, true); n++; }
+      }
+      for(const fp in (data.rejected||{})) await putRejected(data.rejected[fp]);
+      if(MODE !== 'cloud') saveLocal();
+      loadFilter(); renderAll();
+      showToast(t('importSuccess') + ' (' + n + ')', 'ok');
+      confetti();
+    }catch(err){ showToast(t('importError') + ': ' + err.message, 'err'); }
+  };
+  input.click();
+}
+
+/* ==================== UPDATES ==================== */
+async function checkForUpdates(manual){
+  try{
+    const res = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/index.html', {cache:'no-store'});
+    if(!res.ok){ if(manual) showToast(t('upToDate'), 'info'); return; }
+    const file = await res.json();
+    const content = decodeURIComponent(escape(atob(file.content.replace(/\n/g,''))));
+    const m = content.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
+    if(!m) return;
+    if(m[1] !== APP_VERSION){
+      if(confirm(t('updateAvailable') + ': v' + m[1] + '\n' + t('updateNow'))){
+        if('caches' in window){ const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k))); }
+        if(navigator.serviceWorker){ const reg = await navigator.serviceWorker.getRegistration(); if(reg) await reg.unregister(); }
+        location.reload(true);
+      }
+    } else if(manual) showToast(t('upToDate'), 'ok');
+  }catch(e){ if(manual) showToast(t('upToDate'), 'info'); }
+}
+
+/* ==================== INIT ==================== */
+document.addEventListener('DOMContentLoaded', async () => {
+  applyI18n();
+  initFirebase();
+  if(!fbReady) $('#obCloudWarn').classList.remove('hidden');
+  $$('.view').forEach(el => el.style.display = 'none');
+
+  if(MODE === 'cloud' && WS_ID && fbReady){
+    subscribeCloud();
+    setTimeout(()=> enterApp(), 500);
+  } else if(MODE === 'local'){
+    loadLocal();
+    setTimeout(()=> enterApp(), 400);
+  } else if(MODE === 'cloud' && !fbReady){
+    // config was removed — fall back to local so data is still reachable
+    MODE = 'local'; localStorage.setItem(LS.mode,'local'); loadLocal();
+    setTimeout(()=> enterApp(), 400);
+  } else {
+    setTimeout(()=>{
+      $('#screen-loading').classList.remove('active');
+      $('#screen-onboard').classList.add('active');
+    }, 600);
+  }
+
+  // version badge in every header
+  document.querySelectorAll('.app-header').forEach(h => {
+    if(h.querySelector('.header-ver')) return;
+    const s = document.createElement('span');
+    s.className = 'header-ver'; s.textContent = 'v' + APP_VERSION;
+    h.insertBefore(s, h.querySelector('.icon-btn'));
+  });
+
+  // keyboard shortcuts for desktop review
+  document.addEventListener('keydown', e => {
+    if(currentView !== 'review') return;
+    if(document.querySelector('.modal-bg.active')) return;
+    if(/input|textarea|select/i.test((e.target.tagName||''))) return;
+    const list = pendingList(); if(!list.length) return;
+    if(e.key === 'ArrowLeft')  { e.preventDefault(); decide(list[0].id, document.documentElement.dir==='rtl' ? 'liked' : 'rejected'); }
+    if(e.key === 'ArrowRight') { e.preventDefault(); decide(list[0].id, document.documentElement.dir==='rtl' ? 'rejected' : 'liked'); }
+    if(e.key === 'ArrowDown')  { e.preventDefault(); skipCard(list[0].id); }
+    if(e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undoLast(); }
+  });
+
+  setTimeout(()=> checkForUpdates(false), 4000);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW:', e.message));
+  }
+});
+</script>
+</body>
+</html>
