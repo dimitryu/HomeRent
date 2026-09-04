@@ -1,6 +1,6 @@
 // Service worker — HomeRent Finder
 // CACHE_NAME must match APP_VERSION in index.html. Bump on every release.
-const CACHE_NAME = 'homerent-v1.0.0';
+const CACHE_NAME = 'homerent-v1.1.0';
 const ASSETS = [
   './',
   './index.html',
