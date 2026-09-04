@@ -94,6 +94,7 @@ html[dir="ltr"] body{text-align:left}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
 .sync-dot.on{background:var(--success);box-shadow:0 0 0 3px var(--success-soft)}
 .sync-dot.local{background:var(--warning);box-shadow:0 0 0 3px var(--warning-soft)}
+.sync-dot.err{background:var(--danger);box-shadow:0 0 0 3px var(--danger-soft)}
 
 /* ---------- generic ---------- */
 .pad{padding:14px 16px}
@@ -496,6 +497,26 @@ table.cmp tr:hover td{background:var(--card2)}
   </div>
 </div>
 
+<div class="modal-bg" id="modalCode" onclick="if(event.target===this)closeModal('modalCode')">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="wsCode">קוד מרחב עבודה</h3>
+      <button class="icon-btn" onclick="closeModal('modalCode')">✕</button></div>
+    <div class="modal-body" style="text-align:center">
+      <div style="font-size:52px;margin-bottom:6px">🔗</div>
+      <p class="small muted" style="line-height:1.6;margin-bottom:14px" data-i18n="wsCodeHelp">
+        הזינו את הקוד במכשירים אחרים כדי לסנכרן</p>
+      <div class="code-box" id="codeBoxValue" onclick="copyText(this.textContent.trim())">--------</div>
+      <button class="btn btn-soft btn-block" style="margin-top:12px" onclick="copyText($('#codeBoxValue').textContent.trim())">
+        📋 <span data-i18n="copyCode">העתק קוד</span></button>
+      <div class="info-box" style="margin-top:14px;text-align:start" data-i18n="wsCodeKeep">
+        שמרו את הקוד. הוא מוצג תמיד בהגדרות ← מצב עבודה.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary btn-block" onclick="closeModal('modalCode')" data-i18n="close">סגור</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalJoin" onclick="if(event.target===this)closeModal('modalJoin')">
   <div class="modal">
     <div class="modal-head"><h3 data-i18n="obJoin">התחבר עם קוד</h3>
@@ -507,7 +528,7 @@ table.cmp tr:hover td{background:var(--card2)}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modalJoin')" data-i18n="cancel">ביטול</button>
-      <button class="btn btn-primary" style="flex:2" onclick="joinWorkspace()" data-i18n="connect">התחבר</button>
+      <button class="btn btn-primary" style="flex:2" id="joinBtn" onclick="joinWorkspace()" data-i18n="connect">התחבר</button>
     </div>
   </div>
 </div>
@@ -519,20 +540,20 @@ table.cmp tr:hover td{background:var(--card2)}
 // ║  APP CONFIGURATION — ערכו את הערכים כאן                              ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
-const APP_VERSION = "1.0.0";                      // גרסה — העלו בכל עדכון
+const APP_VERSION = "1.1.0";                      // גרסה — העלו בכל עדכון
 const APP_NAME    = "HomeRent Finder";            // שם פנימי (לקבצי גיבוי)
-const GITHUB_REPO = "dimitryu/App_HomeRent";      // ריפו לבדיקת עדכונים
+const GITHUB_REPO = "dimitryu/HomeRent";          // ריפו לבדיקת עדכונים
 
 // ── Firebase — הדביקו כאן את הקונפיג מהפרויקט שלכם ──────────────────────
 // Firebase Console → Project settings → Your apps → Web app → firebaseConfig
 // כל עוד apiKey ריק — האפליקציה עובדת במצב מקומי בלבד (localStorage).
 const FIREBASE_CONFIG = {
-  apiKey:            "",   // ← הדביקו כאן
-  authDomain:        "",   // ← הדביקו כאן
-  projectId:         "",   // ← הדביקו כאן
-  storageBucket:     "",   // ← הדביקו כאן
-  messagingSenderId: "",   // ← הדביקו כאן
-  appId:             ""    // ← הדביקו כאן
+  apiKey:            "AIzaSyDyuRZ13u8GOwk0sUuzByoTe2OUFTZX9l8",
+  authDomain:        "homerent-c6c4f.firebaseapp.com",
+  projectId:         "homerent-c6c4f",
+  storageBucket:     "homerent-c6c4f.firebasestorage.app",
+  messagingSenderId: "120147333502",
+  appId:             "1:120147333502:web:5add24dd82a35efabca32f"
 };
 
 // ╚══════════════════════════════════════════════════════════════════════╝
@@ -600,7 +621,7 @@ he:{appName:'מנהל חיפוש דירות',settings:'הגדרות',appearance:
  confirmDelete:'למחוק את הדירה?',confirmReset:'לאפס את כל הפילטר?',
  updateAvailable:'קיים עדכון',updateNow:'לעדכן עכשיו?',upToDate:'האפליקציה מעודכנת',
  importSuccess:'הנתונים יובאו בהצלחה',importError:'שגיאת ייבוא',invalidBackup:'קובץ גיבוי לא תקין',
- wsCode:'קוד מרחב עבודה',wsCodeHelp:'הזינו את הקוד במכשירים אחרים כדי לסנכרן',
+ copyCode:'העתק קוד',wsCodeKeep:'שמרו את הקוד. הוא מוצג תמיד בהגדרות ← מצב עבודה.',switchWs:'התחבר לקוד אחר',syncing:'מסנכרן…',loadedN:'נטענו {n} דירות מהמרחב',rulesError:'Firestore חוסם גישה. יש לפרסם את הכללים מקובץ firestore.rules בקונסולת Firebase.',netError:'אין חיבור ל-Firebase. בדקו אינטרנט ונסו שוב.',showCode:'הצג קוד',wsCode:'קוד מרחב עבודה',wsCodeHelp:'הזינו את הקוד במכשירים אחרים כדי לסנכרן',
  mode:'מצב עבודה',modeCloud:'ענן — מסונכרן',modeLocal:'מקומי — מכשיר זה בלבד',
  leaveWs:'התנתק ואפס מכשיר',confirmLeave:'לנתק את המכשיר הזה? הנתונים בענן יישארו.',
  codeNotFound:'קוד לא נמצא',connected:'מחובר בהצלחה',restore:'החזר למאגר',restored:'הוחזר למאגר',
@@ -643,7 +664,7 @@ ru:{appName:'Поиск квартир',settings:'Настройки',appearance
  confirmDelete:'Удалить квартиру?',confirmReset:'Сбросить фильтр?',
  updateAvailable:'Доступно обновление',updateNow:'Обновить сейчас?',upToDate:'Версия актуальна',
  importSuccess:'Данные импортированы',importError:'Ошибка импорта',invalidBackup:'Неверный файл',
- wsCode:'Код пространства',wsCodeHelp:'Введите его на других устройствах',
+ copyCode:'Копировать код',wsCodeKeep:'Сохраните код — он всегда есть в Настройках → Режим.',switchWs:'Ввести другой код',syncing:'Синхронизация…',loadedN:'Загружено квартир: {n}',rulesError:'Firestore блокирует доступ. Опубликуйте правила из firestore.rules.',netError:'Нет связи с Firebase. Проверьте интернет.',showCode:'Показать код',wsCode:'Код пространства',wsCodeHelp:'Введите его на других устройствах',
  mode:'Режим',modeCloud:'Облако — синхронно',modeLocal:'Локально — только здесь',
  leaveWs:'Отключить устройство',confirmLeave:'Отключить это устройство? Данные в облаке останутся.',
  codeNotFound:'Код не найден',connected:'Подключено',restore:'Вернуть',restored:'Возвращено',
@@ -686,7 +707,7 @@ en:{appName:'Rental Finder',settings:'Settings',appearance:'Appearance',darkMode
  confirmDelete:'Delete this apartment?',confirmReset:'Reset the whole filter?',
  updateAvailable:'Update available',updateNow:'Update now?',upToDate:'You are up to date',
  importSuccess:'Data imported',importError:'Import error',invalidBackup:'Invalid backup file',
- wsCode:'Workspace code',wsCodeHelp:'Enter it on your other devices to sync',
+ copyCode:'Copy code',wsCodeKeep:'Keep this code — it is always shown in Settings → Mode.',switchWs:'Join a different code',syncing:'Syncing…',loadedN:'{n} apartments loaded',rulesError:'Firestore is denying access. Publish the rules from firestore.rules in the Firebase console.',netError:'Cannot reach Firebase. Check your connection.',showCode:'Show code',wsCode:'Workspace code',wsCodeHelp:'Enter it on your other devices to sync',
  mode:'Mode',modeCloud:'Cloud — synced',modeLocal:'Local — this device only',
  leaveWs:'Disconnect this device',confirmLeave:'Disconnect this device? Cloud data stays.',
  codeNotFound:'Code not found',connected:'Connected',restore:'Restore',restored:'Restored',
@@ -925,22 +946,37 @@ async function unreject(fp){
     }catch(e){ console.warn(e); }
   } else saveLocal();
 }
+function fbError(e){
+  console.warn('firestore:', e && e.code, e && e.message);
+  if(e && e.code === 'permission-denied') return t('rulesError');
+  if(e && (e.code === 'unavailable' || e.code === 'failed-precondition')) return t('netError');
+  return (e && e.message) || 'Firebase error';
+}
+let _unsub = [];
 function subscribeCloud(){
-  wsRef().collection('listings').onSnapshot(snap => {
+  _unsub.forEach(fn => { try{ fn(); }catch(err){} });
+  _unsub = [];
+  _unsub.push(wsRef().collection('listings').onSnapshot(snap => {
     snap.docChanges().forEach(ch => {
       if(ch.type === 'removed') delete LISTINGS[ch.doc.id];
       else LISTINGS[ch.doc.id] = ch.doc.data();
     });
+    setSync('on');
     renderAll();
-  }, e => { console.warn(e); showToast('שגיאת סנכרון', 'err'); });
-  wsRef().collection('rejected').onSnapshot(snap => {
+  }, e => { setSync('err'); showToast(fbError(e), 'err'); }));
+  _unsub.push(wsRef().collection('rejected').onSnapshot(snap => {
     snap.docChanges().forEach(ch => {
       const d = ch.doc.data();
       if(ch.type === 'removed') delete REJECTED[d.fp];
       else REJECTED[d.fp] = d;
     });
     renderAll();
-  }, e => console.warn(e));
+  }, e => { setSync('err'); console.warn(e); }));
+}
+function setSync(state){
+  const dot = $('#syncDot'); if(!dot) return;
+  dot.className = 'sync-dot ' + (state === 'on' ? 'on' : state === 'err' ? 'err' : 'local');
+  dot.title = state === 'on' ? t('modeCloud') : state === 'err' ? t('rulesError') : t('modeLocal');
 }
 
 /* ==================== WORKSPACE ==================== */
@@ -963,10 +999,11 @@ async function createWorkspace(){
     loadLocal();
     for(const id2 in LISTINGS){ await wsRef().collection('listings').doc(id2).set(LISTINGS[id2]); }
     subscribeCloud();
+    closeModal('modalSettings');
     enterApp();
     confetti();
-    showToast(t('wsCode') + ': ' + code, 'ok');
-  }catch(e){ console.error(e); showToast('שגיאה ביצירת מרחב', 'err'); }
+    showCodeModal(code);
+  }catch(e){ showToast(fbError(e), 'err'); }
 }
 function showJoinModal(){
   if(!fbReady){ showToast(t('obNoFirebase'), 'err'); return; }
@@ -975,19 +1012,36 @@ function showJoinModal(){
 async function joinWorkspace(){
   const code = ($('#joinCodeInput').value || '').trim().toUpperCase();
   if(code.length < 4){ showToast(t('codeNotFound'), 'err'); return; }
+  const btn = $('#joinBtn');
+  if(btn){ btn.disabled = true; btn.textContent = t('syncing'); }
   try{
     const snap = await db.collection('joinCodes').doc(code).get();
     if(!snap.exists){ showToast(t('codeNotFound'), 'err'); return; }
-    MODE = 'cloud'; WS_ID = snap.data().workspaceId;
+    const wsId = snap.data().workspaceId;
+
+    // verify we can actually read the workspace before switching over
+    const listings = await db.collection('workspaces').doc(wsId).collection('listings').get();
+
+    MODE = 'cloud'; WS_ID = wsId;
     localStorage.setItem(LS.mode, 'cloud');
     localStorage.setItem(LS.ws, WS_ID);
     localStorage.setItem(LS.code, code);
     LISTINGS = {}; REJECTED = {};
+    listings.forEach(d => LISTINGS[d.id] = d.data());
     subscribeCloud();
     closeModal('modalJoin'); closeModal('modalSettings');
     enterApp();
-    showToast(t('connected'), 'ok');
-  }catch(e){ console.error(e); showToast('שגיאת חיבור', 'err'); }
+    confetti();
+    showToast(t('connected') + ' · ' + t('loadedN', {n: listings.size}), 'ok');
+  }catch(e){
+    showToast(fbError(e), 'err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = t('connect'); }
+  }
+}
+function showCodeModal(code){
+  $('#codeBoxValue').textContent = code || localStorage.getItem(LS.code) || '--------';
+  openModal('modalCode');
 }
 function startLocal(){
   MODE = 'local';
@@ -1109,9 +1163,7 @@ function enterApp(){
   $('#screen-loading').classList.remove('active');
   $('#screen-onboard').classList.remove('active');
   $('#screen-app').classList.add('active');
-  const dot = $('#syncDot');
-  dot.className = 'sync-dot ' + (MODE === 'cloud' ? 'on' : 'local');
-  dot.title = MODE === 'cloud' ? t('modeCloud') : t('modeLocal');
+  setSync(MODE === 'cloud' ? 'on' : 'local');
   loadFilter();
   go('search');
 }
@@ -1626,7 +1678,9 @@ function renderSettings(){
           '<div class="help">'+esc(t('wsCodeHelp'))+'</div>' : '')+
         (MODE==='local' && fbReady ? '<button class="btn btn-soft btn-block" style="margin-top:12px" onclick="createWorkspace()">☁️ '+esc(t('obCreate'))+'</button>'+
           '<button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closeModal(\'modalSettings\');showJoinModal()">'+esc(t('obJoin'))+'</button>' : '')+
-        (MODE==='cloud' ? '<button class="btn btn-ghost btn-block" style="margin-top:12px" onclick="leaveWorkspace()">'+esc(t('leaveWs'))+'</button>' : '')+
+        (MODE==='cloud' ? '<button class="btn btn-soft btn-block" style="margin-top:12px" onclick="showCodeModal()">🔗 '+esc(t('showCode'))+'</button>'+
+          '<button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closeModal(\'modalSettings\');showJoinModal()">'+esc(t('switchWs'))+'</button>'+
+          '<button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="leaveWorkspace()">'+esc(t('leaveWs'))+'</button>' : '')+
       '</div></div>'+
 
     '<div class="settings-group"><div class="section-title">'+esc(t('appearance'))+'</div>'+
@@ -1769,9 +1823,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadLocal();
     setTimeout(()=> enterApp(), 400);
   } else if(MODE === 'cloud' && !fbReady){
-    // config was removed — fall back to local so data is still reachable
-    MODE = 'local'; localStorage.setItem(LS.mode,'local'); loadLocal();
-    setTimeout(()=> enterApp(), 400);
+    // Firebase could not load (offline / blocked). Run this session locally but
+    // KEEP the saved cloud mode, so the next online load reconnects by itself.
+    MODE = 'local'; loadLocal();
+    setTimeout(()=>{ enterApp(); setSync('err'); showToast(t('netError'), 'err'); }, 400);
   } else {
     setTimeout(()=>{
       $('#screen-loading').classList.remove('active');
