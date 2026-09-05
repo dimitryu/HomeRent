@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// כללי אבטחה עבור "מנהל חיפוש דירות".
+// המודל: מי שמחזיק בקוד ההצטרפות — מחזיק ב-workspaceId, ורק הוא יכול לגשת לנתונים.
+// אין התחברות משתמשים, ולכן ההגנה מתבססת על כך ש-workspaceId הוא מזהה אקראי ארוך
+// שלא ניתן לנחש, ושאי אפשר לרשום (list) את אוסף ה-workspaces כולו.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // קודי הצטרפות: אפשר לקרוא קוד ספציפי (כדי להצטרף) וליצור קוד חדש.
+    // אי אפשר לרשום את כל הקודים, לעדכן או למחוק קוד קיים.
+    match /joinCodes/{code} {
+      allow get:    if true;
+      allow list:   if false;
+      allow create: if request.resource.data.keys().hasOnly(['workspaceId','createdAt'])
+                    && request.resource.data.workspaceId is string;
+      allow update, delete: if false;
+    }
+
+    // מרחבי עבודה: גישה מלאה למי שיודע את המזהה. אין רישום של כל המרחבים.
+    match /workspaces/{wsId} {
+      allow get, create, update: if true;
+      allow list, delete:        if false;
+
+      // הדירות והדחיות שבתוך המרחב
+      match /listings/{docId} {
+        allow read, write: if true;
+      }
+      match /rejected/{docId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}
+
+// שדרוג אבטחה מומלץ בהמשך:
+// אם תפעילו Firebase Authentication (Anonymous מספיק), אפשר להחליף כל `if true`
+// ב-`if request.auth != null` כדי לחסום גישה אנונימית לגמרי מחוץ לאפליקציה.
