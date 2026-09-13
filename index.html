@@ -204,6 +204,11 @@ select.inp{cursor:pointer}
 .lc-price{font-size:calc(1.1rem * var(--font-scale));font-weight:900;color:var(--accent);white-space:nowrap}
 .lc-addr{font-size:calc(.93rem * var(--font-scale));font-weight:800;line-height:1.35;flex:1}
 .lc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.list-card.gone{border-color:var(--danger);background:linear-gradient(0deg,var(--danger-soft),var(--danger-soft)),var(--card);opacity:.92}
+.list-card.gone .lc-addr{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--danger)}
+.list-card.gone .lc-price{color:var(--danger)}
+.price-was{font-size:calc(.72rem * var(--font-scale));color:var(--text3);text-decoration:line-through;margin-inline-end:5px}
+.lc-checked{font-size:calc(.68rem * var(--font-scale));color:var(--text3);margin-top:7px;font-weight:600}
 .lc-note{margin-top:8px;padding:8px 10px;background:var(--warning-soft);border-radius:10px;
   font-size:calc(.78rem * var(--font-scale));color:var(--text);line-height:1.5;white-space:pre-wrap;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -436,6 +441,14 @@ table.cmp tr:hover td{background:var(--card2)}
           <option value="rooms">חדרים</option>
         </select>
       </div>
+      <div class="card no-print" style="margin-bottom:12px;padding:11px">
+        <div class="row" style="gap:8px">
+          <button class="btn btn-soft" style="flex:1" onclick="copyRecheckPrompt()">🔄 <span data-i18n="checkPrompt">בדוק עדכונים</span></button>
+          <button class="btn btn-ghost" style="flex:1" onclick="openRecheckModal()">📥 <span data-i18n="applyCheck">הדבק תוצאות</span></button>
+        </div>
+        <div class="help" data-i18n="checkHelp">מעתיק רשימה של הדירות במעקב עם הקישורים והמחירים הידועים, ומבקש מקלוד לבדוק מה עדיין רלוונטי ומה התייקר או הוזל. מדביקים את ה־JSON חזרה כאן.</div>
+        <div class="tiny muted" id="checkSummary" style="margin-top:6px"></div>
+      </div>
       <div id="trackedList" class="cards-grid"></div>
     </div>
   </div>
@@ -499,6 +512,25 @@ table.cmp tr:hover td{background:var(--card2)}
       <button class="icon-btn" onclick="closeModal('modalEdit')">✕</button></div>
     <div class="modal-body" id="editBody"></div>
     <div class="modal-foot" id="editFoot"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalRecheck" onclick="if(event.target===this)closeModal('modalRecheck')">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="applyCheck">הדבק תוצאות</h3>
+      <button class="icon-btn" onclick="closeModal('modalRecheck')">✕</button></div>
+    <div class="modal-body">
+      <div class="info-box" style="margin-bottom:12px" data-i18n="recheckHelp">
+        הדביקו את ה־JSON שקלוד החזיר אחרי הבדיקה. האפליקציה תעדכן מחירים, תסמן באדום דירות שכבר לא רלוונטיות, ותשמור היסטוריית מחירים לכל דירה.</div>
+      <div class="field">
+        <textarea class="inp" id="recheckText" style="min-height:190px;font-family:monospace;font-size:13px;direction:ltr;text-align:left"
+          placeholder='[{"url":"https://...","available":true,"price":6100}]'></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modalRecheck')" data-i18n="cancel">ביטול</button>
+      <button class="btn btn-primary" style="flex:2" onclick="applyRecheck()" data-i18n="applyBtn">עדכן</button>
+    </div>
   </div>
 </div>
 
@@ -567,7 +599,7 @@ table.cmp tr:hover td{background:var(--card2)}
 // ║  APP CONFIGURATION — ערכו את הערכים כאן                              ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
-const APP_VERSION = "1.2.0";                      // גרסה — העלו בכל עדכון
+const APP_VERSION = "1.3.0";                      // גרסה — העלו בכל עדכון
 const APP_NAME    = "HomeRent Finder";            // שם פנימי (לקבצי גיבוי)
 const GITHUB_REPO = "dimitryu/HomeRent";          // ריפו לבדיקת עדכונים
 
@@ -691,7 +723,7 @@ he:{appName:'מנהל חיפוש דירות',settings:'הגדרות',appearance:
  confirmDelete:'למחוק את הדירה?',confirmReset:'לאפס את כל הפילטר?',
  updateAvailable:'קיים עדכון',updateNow:'לעדכן עכשיו?',upToDate:'האפליקציה מעודכנת',
  importSuccess:'הנתונים יובאו בהצלחה',importError:'שגיאת ייבוא',invalidBackup:'קובץ גיבוי לא תקין',
- hiddenByFilterT:'{n} דירות מוסתרות על ידי הפילטר',hiddenByFilterS:'הדירות יובאו בהצלחה, אבל אף אחת לא עומדת בכל תנאי הפילטר הנוכחי.',showAllAnyway:'נקה פילטר והצג הכל',editFilter:'ערוך פילטר',filterCleared:'הפילטר נוקה',allFilteredOut:'שימו לב: {n} דירות חדשות מוסתרות על ידי הפילטר',addByLink:'הוספה לפי קישור',linkPh:'הדביקו קישור אחד או כמה, שורה לכל קישור',addLinks:'הוסף קישורים',linksAdded:'נוספו {n} קישורים',needsDetails:'חסרים פרטים',fillPrompt:'העתק פרומפט למילוי פרטים',sources:'מקורות נתונים',sourcesHelp:'האתרים שייכללו בפרומפט האיסוף. האפליקציה עצמה לא ניגשת אליהם ישירות — האתרים חוסמים גישה אוטומטית מהדפדפן.',inDb:'במאגר',noLinks:'לא נמצאו קישורים תקינים',linkWarn:'אתרי הנדל"ן חוסמים קריאה אוטומטית מהדפדפן, ולכן האפליקציה לא יכולה לשלוף את הפרטים מהקישור בעצמה. מה שהיא כן עושה: יוצרת כרטיס לכל קישור עם מה שאפשר לחלץ מהכתובת עצמה, ומעתיקה לך פרומפט שמבקש מקלוד לפתוח בדיוק את הקישורים האלה ולהחזיר JSON — שאותו מדביקים ב\"הדבק מודעות\".',importFilled:'{n} דירות הושלמו בפרטים',copyCode:'העתק קוד',wsCodeKeep:'שמרו את הקוד. הוא מוצג תמיד בהגדרות ← מצב עבודה.',switchWs:'התחבר לקוד אחר',syncing:'מסנכרן…',loadedN:'נטענו {n} דירות מהמרחב',rulesError:'Firestore חוסם גישה. יש לפרסם את הכללים מקובץ firestore.rules בקונסולת Firebase.',netError:'אין חיבור ל-Firebase. בדקו אינטרנט ונסו שוב.',showCode:'הצג קוד',wsCode:'קוד מרחב עבודה',wsCodeHelp:'הזינו את הקוד במכשירים אחרים כדי לסנכרן',
+ hiddenByFilterT:'{n} דירות מוסתרות על ידי הפילטר',hiddenByFilterS:'הדירות יובאו בהצלחה, אבל אף אחת לא עומדת בכל תנאי הפילטר הנוכחי.',showAllAnyway:'נקה פילטר והצג הכל',editFilter:'ערוך פילטר',filterCleared:'הפילטר נוקה',allFilteredOut:'שימו לב: {n} דירות חדשות מוסתרות על ידי הפילטר',addByLink:'הוספה לפי קישור',linkPh:'הדביקו קישור אחד או כמה, שורה לכל קישור',addLinks:'הוסף קישורים',linksAdded:'נוספו {n} קישורים',needsDetails:'חסרים פרטים',fillPrompt:'העתק פרומפט למילוי פרטים',sources:'מקורות נתונים',sourcesHelp:'האתרים שייכללו בפרומפט האיסוף. האפליקציה עצמה לא ניגשת אליהם ישירות — האתרים חוסמים גישה אוטומטית מהדפדפן.',inDb:'במאגר',noLinks:'לא נמצאו קישורים תקינים',linkWarn:'אתרי הנדל"ן חוסמים קריאה אוטומטית מהדפדפן, ולכן האפליקציה לא יכולה לשלוף את הפרטים מהקישור בעצמה. מה שהיא כן עושה: יוצרת כרטיס לכל קישור עם מה שאפשר לחלץ מהכתובת עצמה, ומעתיקה לך פרומפט שמבקש מקלוד לפתוח בדיוק את הקישורים האלה ולהחזיר JSON — שאותו מדביקים ב\"הדבק מודעות\".',importFilled:'{n} דירות הושלמו בפרטים',checkPrompt:'בדוק עדכונים',applyCheck:'הדבק תוצאות',applyBtn:'עדכן',checkHelp:'מעתיק רשימה של הדירות במעקב עם הקישורים והמחירים הידועים, ומבקש מקלוד לבדוק מה עדיין רלוונטי ומה התייקר או הוזל. מדביקים את ה־JSON חזרה כאן.',recheckHelp:'הדביקו את ה־JSON שקלוד החזיר אחרי הבדיקה. האפליקציה תעדכן מחירים, תסמן באדום דירות שכבר לא רלוונטיות, ותשמור היסטוריית מחירים לכל דירה.',nothingToCheck:'אין דירות עם קישור לבדיקה',cheaper:'הוזלה',pricier:'התייקרות',chkDown:'{n} הוזלו',chkUp:'{n} התייקרו',chkGone:'{n} כבר לא רלוונטיות',chkSame:'{n} ללא שינוי',chkUnknown:'{n} לא זוהו',lastChecked:'נבדק',neverChecked:'טרם בוצעה בדיקה',checkedToday:'היום',checkedYesterday:'אתמול',checkedDays:'לפני {n} ימים',noUrlN:'{n} ללא קישור — אי אפשר לבדוק',priceHistory:'היסטוריית מחירים',copyCode:'העתק קוד',wsCodeKeep:'שמרו את הקוד. הוא מוצג תמיד בהגדרות ← מצב עבודה.',switchWs:'התחבר לקוד אחר',syncing:'מסנכרן…',loadedN:'נטענו {n} דירות מהמרחב',rulesError:'Firestore חוסם גישה. יש לפרסם את הכללים מקובץ firestore.rules בקונסולת Firebase.',netError:'אין חיבור ל-Firebase. בדקו אינטרנט ונסו שוב.',showCode:'הצג קוד',wsCode:'קוד מרחב עבודה',wsCodeHelp:'הזינו את הקוד במכשירים אחרים כדי לסנכרן',
  mode:'מצב עבודה',modeCloud:'ענן — מסונכרן',modeLocal:'מקומי — מכשיר זה בלבד',
  leaveWs:'התנתק ואפס מכשיר',confirmLeave:'לנתק את המכשיר הזה? הנתונים בענן יישארו.',
  codeNotFound:'קוד לא נמצא',connected:'מחובר בהצלחה',restore:'החזר למאגר',restored:'הוחזר למאגר',
@@ -734,7 +766,7 @@ ru:{appName:'Поиск квартир',settings:'Настройки',appearance
  confirmDelete:'Удалить квартиру?',confirmReset:'Сбросить фильтр?',
  updateAvailable:'Доступно обновление',updateNow:'Обновить сейчас?',upToDate:'Версия актуальна',
  importSuccess:'Данные импортированы',importError:'Ошибка импорта',invalidBackup:'Неверный файл',
- hiddenByFilterT:'Скрыто фильтром: {n}',hiddenByFilterS:'Квартиры импортированы, но ни одна не проходит текущий фильтр.',showAllAnyway:'Сбросить фильтр',editFilter:'Изменить фильтр',filterCleared:'Фильтр сброшен',allFilteredOut:'Внимание: {n} новых квартир скрыты фильтром',addByLink:'Добавить по ссылке',linkPh:'Вставьте одну или несколько ссылок, по одной в строке',addLinks:'Добавить ссылки',linksAdded:'Добавлено ссылок: {n}',needsDetails:'Нет деталей',fillPrompt:'Промпт для заполнения деталей',sources:'Источники данных',sourcesHelp:'Сайты, включаемые в промпт сбора. Приложение не обращается к ним напрямую — они блокируют доступ из браузера.',inDb:'в базе',noLinks:'Ссылки не найдены',linkWarn:'Сайты недвижимости блокируют автоматическое чтение из браузера, поэтому приложение не может само вытащить детали по ссылке. Оно создаёт карточку по каждой ссылке и копирует промпт для Claude, который вернёт JSON.',importFilled:'Дополнено квартир: {n}',copyCode:'Копировать код',wsCodeKeep:'Сохраните код — он всегда есть в Настройках → Режим.',switchWs:'Ввести другой код',syncing:'Синхронизация…',loadedN:'Загружено квартир: {n}',rulesError:'Firestore блокирует доступ. Опубликуйте правила из firestore.rules.',netError:'Нет связи с Firebase. Проверьте интернет.',showCode:'Показать код',wsCode:'Код пространства',wsCodeHelp:'Введите его на других устройствах',
+ hiddenByFilterT:'Скрыто фильтром: {n}',hiddenByFilterS:'Квартиры импортированы, но ни одна не проходит текущий фильтр.',showAllAnyway:'Сбросить фильтр',editFilter:'Изменить фильтр',filterCleared:'Фильтр сброшен',allFilteredOut:'Внимание: {n} новых квартир скрыты фильтром',addByLink:'Добавить по ссылке',linkPh:'Вставьте одну или несколько ссылок, по одной в строке',addLinks:'Добавить ссылки',linksAdded:'Добавлено ссылок: {n}',needsDetails:'Нет деталей',fillPrompt:'Промпт для заполнения деталей',sources:'Источники данных',sourcesHelp:'Сайты, включаемые в промпт сбора. Приложение не обращается к ним напрямую — они блокируют доступ из браузера.',inDb:'в базе',noLinks:'Ссылки не найдены',linkWarn:'Сайты недвижимости блокируют автоматическое чтение из браузера, поэтому приложение не может само вытащить детали по ссылке. Оно создаёт карточку по каждой ссылке и копирует промпт для Claude, который вернёт JSON.',importFilled:'Дополнено квартир: {n}',checkPrompt:'Проверить обновления',applyCheck:'Вставить результаты',applyBtn:'Обновить',checkHelp:'Копирует список отслеживаемых квартир со ссылками и ценами и просит Claude проверить, что ещё актуально и где изменилась цена.',recheckHelp:'Вставьте JSON от Claude. Приложение обновит цены, отметит красным неактуальные квартиры и сохранит историю цен.',nothingToCheck:'Нет квартир со ссылкой',cheaper:'дешевле',pricier:'дороже',chkDown:'подешевело: {n}',chkUp:'подорожало: {n}',chkGone:'неактуально: {n}',chkSame:'без изменений: {n}',chkUnknown:'не опознано: {n}',lastChecked:'Проверено',neverChecked:'Проверок не было',checkedToday:'сегодня',checkedYesterday:'вчера',checkedDays:'{n} дн. назад',noUrlN:'{n} без ссылки — проверить нельзя',priceHistory:'История цен',copyCode:'Копировать код',wsCodeKeep:'Сохраните код — он всегда есть в Настройках → Режим.',switchWs:'Ввести другой код',syncing:'Синхронизация…',loadedN:'Загружено квартир: {n}',rulesError:'Firestore блокирует доступ. Опубликуйте правила из firestore.rules.',netError:'Нет связи с Firebase. Проверьте интернет.',showCode:'Показать код',wsCode:'Код пространства',wsCodeHelp:'Введите его на других устройствах',
  mode:'Режим',modeCloud:'Облако — синхронно',modeLocal:'Локально — только здесь',
  leaveWs:'Отключить устройство',confirmLeave:'Отключить это устройство? Данные в облаке останутся.',
  codeNotFound:'Код не найден',connected:'Подключено',restore:'Вернуть',restored:'Возвращено',
@@ -777,7 +809,7 @@ en:{appName:'Rental Finder',settings:'Settings',appearance:'Appearance',darkMode
  confirmDelete:'Delete this apartment?',confirmReset:'Reset the whole filter?',
  updateAvailable:'Update available',updateNow:'Update now?',upToDate:'You are up to date',
  importSuccess:'Data imported',importError:'Import error',invalidBackup:'Invalid backup file',
- hiddenByFilterT:'{n} listings hidden by your filter',hiddenByFilterS:'They imported fine, but none of them satisfies every condition in the current filter.',showAllAnyway:'Clear filter and show all',editFilter:'Edit filter',filterCleared:'Filter cleared',allFilteredOut:'Note: {n} new listings are hidden by your filter',addByLink:'Add by link',linkPh:'Paste one or more links, one per line',addLinks:'Add links',linksAdded:'{n} links added',needsDetails:'Details missing',fillPrompt:'Copy a prompt to fill in the details',sources:'Data sources',sourcesHelp:'Sites included in the collection prompt. The app does not reach them directly — they block automated browser access.',inDb:'in database',noLinks:'No valid links found',linkWarn:'Real-estate sites block automated reads from the browser, so the app cannot pull details from a link on its own. It creates a card per link from whatever the URL reveals, and copies a prompt asking Claude to open exactly those links and return JSON.',importFilled:'{n} listings completed with details',copyCode:'Copy code',wsCodeKeep:'Keep this code — it is always shown in Settings → Mode.',switchWs:'Join a different code',syncing:'Syncing…',loadedN:'{n} apartments loaded',rulesError:'Firestore is denying access. Publish the rules from firestore.rules in the Firebase console.',netError:'Cannot reach Firebase. Check your connection.',showCode:'Show code',wsCode:'Workspace code',wsCodeHelp:'Enter it on your other devices to sync',
+ hiddenByFilterT:'{n} listings hidden by your filter',hiddenByFilterS:'They imported fine, but none of them satisfies every condition in the current filter.',showAllAnyway:'Clear filter and show all',editFilter:'Edit filter',filterCleared:'Filter cleared',allFilteredOut:'Note: {n} new listings are hidden by your filter',addByLink:'Add by link',linkPh:'Paste one or more links, one per line',addLinks:'Add links',linksAdded:'{n} links added',needsDetails:'Details missing',fillPrompt:'Copy a prompt to fill in the details',sources:'Data sources',sourcesHelp:'Sites included in the collection prompt. The app does not reach them directly — they block automated browser access.',inDb:'in database',noLinks:'No valid links found',linkWarn:'Real-estate sites block automated reads from the browser, so the app cannot pull details from a link on its own. It creates a card per link from whatever the URL reveals, and copies a prompt asking Claude to open exactly those links and return JSON.',importFilled:'{n} listings completed with details',checkPrompt:'Check for updates',applyCheck:'Paste results',applyBtn:'Update',checkHelp:'Copies your tracked listings with their links and known prices, and asks Claude to check what is still available and what changed price. Paste the JSON back here.',recheckHelp:'Paste the JSON Claude returned. The app updates prices, marks listings that are gone in red, and keeps a price history per listing.',nothingToCheck:'No tracked listings have a link',cheaper:'cheaper',pricier:'more expensive',chkDown:'{n} cheaper',chkUp:'{n} pricier',chkGone:'{n} no longer available',chkSame:'{n} unchanged',chkUnknown:'{n} not matched',lastChecked:'Checked',neverChecked:'Never checked',checkedToday:'today',checkedYesterday:'yesterday',checkedDays:'{n} days ago',noUrlN:'{n} without a link — cannot be checked',priceHistory:'Price history',copyCode:'Copy code',wsCodeKeep:'Keep this code — it is always shown in Settings → Mode.',switchWs:'Join a different code',syncing:'Syncing…',loadedN:'{n} apartments loaded',rulesError:'Firestore is denying access. Publish the rules from firestore.rules in the Firebase console.',netError:'Cannot reach Firebase. Check your connection.',showCode:'Show code',wsCode:'Workspace code',wsCodeHelp:'Enter it on your other devices to sync',
  mode:'Mode',modeCloud:'Cloud — synced',modeLocal:'Local — this device only',
  leaveWs:'Disconnect this device',confirmLeave:'Disconnect this device? Cloud data stays.',
  codeNotFound:'Code not found',connected:'Connected',restore:'Restore',restored:'Restored',
@@ -852,6 +884,7 @@ function blankListing(){
     floor:null, floors:null, rooms:null, size:null, price:null, desc:'',
     bath:null, shower:null, entry:'', contact:'', phone:'', feat:f,
     status:'new', rating:0, notes:'', track:'toCheck', visitDate:'', needsDetails:false,
+    lastChecked:0, priceHistory:[], prevPrice:null, checkNote:'',
     createdAt:Date.now(), updatedAt:Date.now()};
 }
 function normalizeListing(raw){
@@ -1474,8 +1507,14 @@ function renderTracked(){
   }
   box.innerHTML = list.map(l => {
     const st = TRACK_STATUSES.find(s => s.k === (l.track||'toCheck')) || TRACK_STATUSES[0];
-    return '<div class="list-card" onclick="openEditModal(\''+esc(l.id)+'\')">'+
-      '<div class="lc-top"><div class="lc-addr">'+esc(addrOf(l))+'</div><div class="lc-price">'+fmtMoney(l.price)+'</div></div>'+
+    const isGone = (l.track||'toCheck') === 'gone';
+    const moved = l.prevPrice != null && l.price != null && l.prevPrice !== l.price;
+    const cheaper = moved && l.price < l.prevPrice;
+    return '<div class="list-card'+(isGone?' gone':'')+'" onclick="openEditModal(\''+esc(l.id)+'\')">'+
+      '<div class="lc-top"><div class="lc-addr">'+esc(addrOf(l))+'</div>'+
+      '<div class="lc-price">'+(moved?'<span class="price-was">'+fmtMoney(l.prevPrice)+'</span>':'')+fmtMoney(l.price)+'</div></div>'+
+      (moved?'<div class="row" style="margin-bottom:6px"><span class="pill '+(cheaper?'ok':'dang')+'">'+
+        (cheaper?'📉 ':'📈 ')+fmtMoney(Math.abs(l.price-l.prevPrice))+' '+esc(cheaper?t('cheaper'):t('pricier'))+'</span></div>':'')+
       '<div class="row" style="gap:6px;flex-wrap:wrap">'+
         '<span class="pill '+st.cls+'">'+st.e+' '+esc(statusLabel(st))+'</span>'+
         (l.needsDetails?'<span class="pill warn">⚠️ '+esc(t('needsDetails'))+'</span>':'')+
@@ -1486,9 +1525,18 @@ function renderTracked(){
         '<span class="stars">'+[1,2,3,4,5].map(n=>'<span class="star'+((l.rating||0)>=n?' on':'')+'">★</span>').join('')+'</span>'+
       '</div>'+
       '<div class="lc-meta">'+featPills(l, 5)+'</div>'+
+      (l.checkNote ? '<div class="lc-note">🔎 '+esc(l.checkNote)+'</div>' : '')+
       (l.notes ? '<div class="lc-note">📝 '+esc(l.notes)+'</div>' : '')+
+      (l.lastChecked ? '<div class="lc-checked">🕒 '+esc(t('lastChecked'))+': '+esc(fmtChecked(l.lastChecked))+'</div>' : '')+
     '</div>';
   }).join('');
+  const chk = likedList().filter(l => l.lastChecked).map(l => l.lastChecked);
+  const noUrl = likedList().filter(l => !l.url).length;
+  const el = $('#checkSummary');
+  if(el) el.textContent = [
+    chk.length ? t('lastChecked') + ': ' + fmtChecked(Math.max.apply(null, chk)) : t('neverChecked'),
+    noUrl ? t('noUrlN', {n: noUrl}) : ''
+  ].filter(Boolean).join(' · ');
 }
 
 /* ---------- REJECTED ---------- */
@@ -1610,6 +1658,23 @@ function openEditModal(id){
           '<span class="star'+((l.rating||0)>=n?' on':'')+'" onclick="pickStar('+n+')">★</span>').join('')+'</div></div>'+
       '<div class="field" style="margin-bottom:0"><label>'+esc(t('notes'))+'</label>'+
         '<textarea class="inp" id="ed_notes" placeholder="'+esc(t('notesPh'))+'">'+esc(l.notes||'')+'</textarea></div>'+
+    '</div>';
+  }
+  if(id && (l.priceHistory||[]).length){
+    const hist = (l.priceHistory||[]).concat([{price:l.price, at:l.lastPriceAt||Date.now()}]);
+    html += '<div class="card" style="margin-bottom:14px">'+
+      '<div class="section-title" style="margin-top:0">'+esc(t('priceHistory'))+'</div>'+
+      hist.map((h,i) => {
+        const prev = i > 0 ? hist[i-1].price : null;
+        const d = prev != null ? h.price - prev : 0;
+        return '<div class="row-between" style="padding:4px 0">'+
+          '<span class="small">'+new Date(h.at||0).toLocaleDateString('he-IL')+'</span>'+
+          '<span class="small" style="font-weight:800">'+fmtMoney(h.price)+
+          (d ? ' <span class="pill '+(d<0?'ok':'dang')+'">'+(d<0?'▼':'▲')+' '+fmtMoney(Math.abs(d))+'</span>' : '')+
+          '</span></div>';
+      }).join('')+
+      (l.lastChecked ? '<div class="tiny muted" style="margin-top:6px">🕒 '+esc(t('lastChecked'))+': '+esc(fmtChecked(l.lastChecked))+'</div>' : '')+
+      (l.checkNote ? '<div class="lc-note" style="margin-top:8px">🔎 '+esc(l.checkNote)+'</div>' : '')+
     '</div>';
   }
   html += '<div class="grid2">'+F('city',t('fieldCity'))+F('hood',t('fieldHood'))+'</div>'+
@@ -1856,6 +1921,93 @@ schema + '\n\n'+
 '- כל שדה ב-feat הוא true/false לפי מה שכתוב במודעה.\n'+
 '- אם מודעה כבר לא זמינה — החזר עבורה {"url":"...","gone":true}.\n';
   copyText(p);
+}
+/* ---------- RE-CHECK TRACKED LISTINGS ---------- */
+function checkableList(){
+  return likedList().filter(l => l.url && (l.track || 'toCheck') !== 'gone');
+}
+function copyRecheckPrompt(){
+  const list = checkableList();
+  if(!list.length){ showToast(t('nothingToCheck'), 'err'); return; }
+  const rows = list.map(l => '- ' + l.url + '   (' + addrOf(l) + ' | ' +
+    (l.price != null ? l.price + ' ₪' : 'מחיר לא ידוע') + ')').join('\n');
+  const p =
+'עבור כל אחת מהמודעות הבאות של דירות להשכרה, פתח את הקישור ובדוק שני דברים:\n'+
+'1. האם המודעה עדיין פעילה והדירה עדיין מוצעת להשכרה.\n'+
+'2. מה המחיר המבוקש כרגע במודעה.\n\n'+
+'בסוגריים מופיע המחיר שהיה ידוע לי בבדיקה הקודמת — השווה אליו.\n\n'+
+rows + '\n\n'+
+'החזר מערך JSON תקין בלבד, בלי טקסט לפניו או אחריו, אובייקט אחד לכל קישור:\n\n'+
+'[{"url":"","available":true,"price":0,"note":""}]\n\n'+
+'הערות:\n'+
+'- url: בדיוק הקישור שנתתי, כדי שאדע לאיזו דירה זה שייך.\n'+
+'- available: false אם המודעה הוסרה, נמחקה, מסומנת כהושכרה, או שהדירה כבר לא זמינה.\n'+
+'- price: המחיר הנוכחי במודעה. אם לא השתנה — החזר את אותו מחיר. אם אין מחיר — null.\n'+
+'- note: רק אם יש שינוי מהותי נוסף שכדאי שאדע (תאריך כניסה שהשתנה, תנאי שכירות, הערה מהמפרסם). אחרת השאר ריק.\n';
+  copyText(p);
+}
+function openRecheckModal(){
+  $('#recheckText').value = '';
+  openModal('modalRecheck');
+}
+async function applyRecheck(){
+  const text = $('#recheckText').value || '';
+  const arr = extractJson(text);
+  if(!arr || !arr.length){ showToast(t('importNone'), 'err'); return; }
+  const byUrl = {};
+  all().forEach(l => { if(l.url) byUrl[normUrl(l.url)] = l; });
+
+  let gone = 0, up = 0, down = 0, same = 0, unknown = 0;
+  const now = Date.now();
+  for(const r of arr){
+    const key = normUrl(r.url || r.link || '');
+    const l = key && byUrl[key];
+    if(!l){ unknown++; continue; }
+    l.lastChecked = now;
+    if(r.note) l.checkNote = String(r.note);
+
+    const avail = !(r.available === false || r.available === 'false' ||
+                    r.gone === true || r.gone === 'true' ||
+                    r.status === 'gone' || r.status === 'removed');
+    if(!avail){
+      l.track = 'gone';
+      gone++;
+      await putListing(l, true);
+      continue;
+    }
+    const np = (r.price === null || r.price === undefined || r.price === '') ? null : num(r.price);
+    if(np != null && l.price != null && np !== l.price){
+      l.priceHistory = (l.priceHistory || []).concat([{price: l.price, at: l.lastPriceAt || l.createdAt || now}]);
+      l.prevPrice = l.price;
+      l.price = np;
+      l.lastPriceAt = now;
+      if(np > l.prevPrice) up++; else down++;
+    } else if(np != null && l.price == null){
+      l.price = np; same++;
+    } else same++;
+    await putListing(l, true);
+  }
+  if(MODE !== 'cloud') saveLocal();
+  closeModal('modalRecheck');
+  renderAll();
+  const parts = [];
+  if(down)    parts.push(t('chkDown',   {n:down}));
+  if(up)      parts.push(t('chkUp',     {n:up}));
+  if(gone)    parts.push(t('chkGone',   {n:gone}));
+  if(same)    parts.push(t('chkSame',   {n:same}));
+  if(unknown) parts.push(t('chkUnknown',{n:unknown}));
+  showToast(parts.join(' · ') || t('importNone'), gone ? 'err' : 'ok');
+  if(down) confetti();
+}
+function normUrl(u){
+  return String(u||'').trim().toLowerCase().replace(/[?#].*$/,'').replace(/\/$/,'');
+}
+function fmtChecked(ts){
+  if(!ts) return '';
+  const days = Math.floor((Date.now() - ts) / 86400000);
+  if(days <= 0) return t('checkedToday');
+  if(days === 1) return t('checkedYesterday');
+  return t('checkedDays', {n: days});
 }
 function copyScrapePrompt(){
   const F = FILTER;
