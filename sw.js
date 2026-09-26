@@ -1,13 +1,14 @@
 // Service worker — HomeRent Finder
 // CACHE_NAME must match APP_VERSION in index.html. Bump on every release.
-const CACHE_NAME = 'homerent-v1.5.0';
+const CACHE_NAME = 'homerent-v1.7.0';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-512-maskable.png'
+  './icon-512-maskable.png',
+  './hoods-il.json'
 ];
 
 self.addEventListener('install', event => {
@@ -40,7 +41,8 @@ self.addEventListener('fetch', event => {
     // map: library from the CDN, tiles and geocoding are all network-only
     url.includes('cdnjs.cloudflare.com') ||
     url.includes('tile.openstreetmap.org') ||
-    url.includes('nominatim.openstreetmap.org')
+    url.includes('nominatim.openstreetmap.org') ||
+    url.includes('overpass-api.de')
   ) return;
 
   // Network-first, cache as fallback (keeps the app fresh, works offline).
